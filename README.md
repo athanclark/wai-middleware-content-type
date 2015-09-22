@@ -1,31 +1,36 @@
-# wai-middleware-content-type
+wai-middleware-content-type
+===========================
 
-TODO: Write description here
-
-## Installation
-
-TODO: Write installation instructions here
+Route middlewares based on the incoming `Accept` HTTP header,
+and other hints like the file extension (`foo.txt`) of the route
+requested.
 
 ## Usage
 
-### Creating `x`
+This package provides many combinators for turning various data
+types into the response you'd expect. For instance,
+[blaze-html](https://hackage.haskell.org/package/blaze-html) gives
+us _strictly_ `Html` data, right? We can be sure to only respond
+with `Html`-compatible requests with our toolset:
 
-TODO: Write usage instructions here
+```haskell
+import Network.Wai.Middleware.ContentType
+import Network.Wai.Middleware.ContentType.Middleware (middleware)
+import Network.Wai.Trans
 
-### Combining `x`
 
-TODO: Write usage instructions here
+myMiddleware :: MiddleareT (ReaderT Env m)
 
-### Consuming `x`
+contentTypeRoutes :: MonadIO m => FileExtListenerT (MiddlewareT (ReaderT Env m)) (ReaderT Env m) ()
+contentTypeRoutes = do
+  blaze myBlazeResponse
+  cassius myCassiusResponse
+  text myTextResponse
+  middleware Json myMiddleware
 
-TODO: Write usage instructions here
 
-## How to run tests
-
+contentMiddleware :: MonadIO m => MiddlewareT (ReaderT Env m)
+contentMiddleware = fileExtsToMiddleware contentTypeRoutes
 ```
-cabal configure --enable-tests && cabal build && cabal test
-```
 
-## Contributing
-
-TODO: Write contribution instructions here
+Which you can then decompose into a `Middleware` and use in the rest of your Wai stack.
