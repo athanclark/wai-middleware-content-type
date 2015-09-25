@@ -9,7 +9,7 @@ module Network.Wai.Middleware.ContentType
   , possibleFileExts
   ) where
 
-import Network.Wai.Middleware.ContentType.Types      as X
+import Network.Wai.Middleware.ContentType.Types      as X hiding (tell)
 import Network.Wai.Middleware.ContentType.Blaze      as X
 import Network.Wai.Middleware.ContentType.Builder    as X
 import Network.Wai.Middleware.ContentType.ByteString as X

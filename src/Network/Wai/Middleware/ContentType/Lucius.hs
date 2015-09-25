@@ -9,8 +9,8 @@ import           Network.Wai.Trans
 
 import           Text.Lucius
 import qualified Data.Text.Lazy.Encoding                 as LT
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @lucius@ as the key in the map, and @"lucius/css"@ as the content type.

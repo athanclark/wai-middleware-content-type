@@ -10,9 +10,8 @@ import qualified Network.Wai.Util                        as U
 
 import qualified Data.ByteString.Lazy                    as B
 import           Data.Map
-
-import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Writer
+import           Control.Monad.Trans (lift)
+import           Control.Monad.IO.Class
 
 
 -- * Lifted @MiddlewareT@

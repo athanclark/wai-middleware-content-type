@@ -8,8 +8,9 @@ import           Network.HTTP.Types                      (RequestHeaders, Status
 import           Network.Wai.Trans
 
 import qualified Lucid.Base                              as L
+import           Control.Monad.Trans
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses the @Html@ key in the map, and @"text/html"@ as the content type.
@@ -70,4 +71,4 @@ lucidOnlyHeaders = lucidOnlyStatusHeaders status200
 
 lucidOnlyStatusHeaders :: Monad m =>
              Status -> RequestHeaders -> L.HtmlT m () -> m Response
-lucidOnlyStatusHeaders s hs i = liftM (bytestringOnlyStatus s hs) $ L.renderBST i
+lucidOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs <$> L.renderBST i

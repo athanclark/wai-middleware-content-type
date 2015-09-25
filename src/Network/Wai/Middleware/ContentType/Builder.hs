@@ -8,8 +8,8 @@ import           Network.Wai.Trans
 
 import qualified Data.ByteString.Builder                 as BU
 import qualified Data.Map                                as Map
+import           Control.Monad.IO.Class
 
-import           Control.Monad.Writer
 
 
 -- | A builder is ambiguous, therefore we require @RequestHeaders@ and a @FileExt@ to be explicitly

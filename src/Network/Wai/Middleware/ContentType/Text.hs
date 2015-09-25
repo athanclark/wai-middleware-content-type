@@ -9,8 +9,8 @@ import           Network.Wai.Trans
 
 import qualified Data.Text.Lazy                          as LT
 import qualified Data.Text.Lazy.Encoding                 as LT
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @Text@ as the key in the map, and @"text/plain"@ as the content type.

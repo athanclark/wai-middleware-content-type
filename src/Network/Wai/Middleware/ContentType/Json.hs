@@ -8,8 +8,8 @@ import           Network.HTTP.Types                      (RequestHeaders, Status
 import           Network.Wai.Trans
 
 import qualified Data.Aeson                              as A
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 

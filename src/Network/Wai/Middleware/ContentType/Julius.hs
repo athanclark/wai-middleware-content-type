@@ -9,8 +9,8 @@ import           Network.Wai.Trans
 
 import           Text.Julius
 import qualified Data.Text.Lazy.Encoding                 as LT
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @julius@ as the key in the map, and @"application/javascript"@ as the content type.

@@ -10,8 +10,8 @@ import           Network.Wai.Trans
 import           Clay.Render
 import           Clay.Stylesheet
 import qualified Data.Text.Lazy.Encoding                 as LT
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @Text@ as the key in the map, and @"text/css"@ as the content type.

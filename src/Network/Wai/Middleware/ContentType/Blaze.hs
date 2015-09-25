@@ -11,8 +11,8 @@ import           Network.HTTP.Types                      (RequestHeaders,
 import           Network.Wai.Trans
 import qualified Text.Blaze.Html                         as H
 import qualified Text.Blaze.Html.Renderer.Text           as H
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @Html@ as the key in the map, and @"text/html"@ as the content type.

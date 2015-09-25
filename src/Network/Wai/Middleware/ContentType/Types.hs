@@ -8,15 +8,29 @@
   , MultiParamTypeClasses
   #-}
 
-module Network.Wai.Middleware.ContentType.Types where
+module Network.Wai.Middleware.ContentType.Types
+  ( FileExt (..)
+  , getFileExt
+  , toExt
+  , FileExts (..)
+  , FileExtListenerT (..)
+  , execFileExtListenerT
+  , tell
+  ) where
 
 import           Network.Wai
 import qualified Data.Text              as T
 import           Data.Map
 import           Data.Maybe (fromMaybe)
+import           Data.Monoid
 import           Control.Monad.Trans
-import           Control.Monad.Writer
+import           Control.Monad.State
 
+
+tell :: (Monoid w, MonadState w m) => w -> m ()
+tell x = do
+  xs <- get
+  put $ xs <> x
 
 -- | Supported file extensions
 data FileExt = Html
@@ -50,8 +64,8 @@ newtype FileExts a = FileExts { unFileExts :: Map FileExt a }
   deriving (Show, Eq, Monoid, Functor, Foldable, Traversable)
 
 newtype FileExtListenerT r m a =
-  FileExtListenerT { runFileExtListenerT :: WriterT (FileExts r) m a }
-    deriving (Functor, Applicative, Monad, MonadIO, MonadTrans, MonadWriter (FileExts r))
+  FileExtListenerT { runFileExtListenerT :: StateT (FileExts r) m a }
+    deriving (Functor, Applicative, Monad, MonadIO, MonadTrans, MonadState (FileExts r))
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExts r)
-execFileExtListenerT = execWriterT . runFileExtListenerT
+execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty

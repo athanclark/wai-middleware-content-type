@@ -9,8 +9,8 @@ import           Network.Wai.Trans
 
 import           Text.Cassius
 import qualified Data.Text.Lazy.Encoding                 as LT
+import           Control.Monad.IO.Class                  (MonadIO)
 
-import           Control.Monad.Writer
 
 
 -- | Uses @cassius@ as the key in the map, and @"cassius/plain"@ as the content type.
