@@ -69,3 +69,12 @@ newtype FileExtListenerT r m a =
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExts r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
+
+mapFileExts :: Monad m =>
+               (a -> b)
+            -> FileExtListenerT a m () -> FileExtListenerT b m ()
+mapFileExts f fl = do
+  femap <- lift $ execFileExtListenerT fl
+  tell $ f <$> femap
+
+

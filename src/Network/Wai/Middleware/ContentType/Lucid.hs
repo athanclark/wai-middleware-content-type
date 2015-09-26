@@ -9,7 +9,6 @@ import           Network.Wai.Trans
 
 import qualified Lucid.Base                              as L
 import           Control.Monad.Trans
-import           Control.Monad.IO.Class                  (MonadIO)
 
 
 
