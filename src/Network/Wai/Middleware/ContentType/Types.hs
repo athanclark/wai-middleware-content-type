@@ -1,11 +1,12 @@
 {-# LANGUAGE
     DeriveFunctor
+  , FlexibleContexts
   , DeriveTraversable
-  , GeneralizedNewtypeDeriving
   , OverloadedStrings
-  , StandaloneDeriving
   , FlexibleInstances
+  , StandaloneDeriving
   , MultiParamTypeClasses
+  , GeneralizedNewtypeDeriving
   #-}
 
 module Network.Wai.Middleware.ContentType.Types
@@ -15,6 +16,7 @@ module Network.Wai.Middleware.ContentType.Types
   , FileExts (..)
   , FileExtListenerT (..)
   , execFileExtListenerT
+  , mapFileExts
   , tell
   ) where
 
@@ -23,6 +25,7 @@ import qualified Data.Text              as T
 import           Data.Map
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid
+import           Data.Foldable
 import           Control.Monad.Trans
 import           Control.Monad.State
 
@@ -44,7 +47,17 @@ data FileExt = Html
 getFileExt :: Request -> FileExt
 getFileExt req = fromMaybe Html $ case pathInfo req of
   [] -> Just Html
-  xs -> toExt $ T.dropWhile (/= '.') $ last xs
+  xs -> toExt $ T.pack $ getLastExt $ T.unpack $ last xs
+  where
+    getLastExt ts = evalState (foldrM go [] ts) False
+    go c soFar = do
+      sawPeriod <- get
+      if sawPeriod
+      then return soFar
+      else if c == '.'
+           then do put True
+                   return ('.' : soFar)
+           else return (c : soFar)
 
 toExt :: T.Text -> Maybe FileExt
 toExt x | x `elem` htmls       = Just Html
@@ -52,7 +65,7 @@ toExt x | x `elem` htmls       = Just Html
         | x `elem` javascripts = Just JavaScript
         | x `elem` jsons       = Just Json
         | x `elem` texts       = Just Text
-        | otherwise            = Nothing
+        | otherwise       = Nothing
   where
     htmls       = [".htm", ".html"]
     csss        = [".css"]

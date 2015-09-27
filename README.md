@@ -34,3 +34,15 @@ contentMiddleware = fileExtsToMiddleware contentTypeRoutes
 ```
 
 Which you can then decompose into a `Middleware` and use in the rest of your Wai stack.
+
+## Technical Details
+
+The semantics for a "file extension" is such that the _last_ phrase following the
+_last_ period is the said file extension. Therefore, something like
+
+```
+foo.bar.baz.qux
+```
+
+has a file extension of `.qux`.
+
