@@ -35,6 +35,7 @@ import Control.Monad.Trans
 
 type AcceptHeader = BS.ByteString
 
+-- | Turn a map of content types to middlewares, into a middleware.
 fileExtsToMiddleware :: MonadIO m =>
                         FileExtListenerT (MiddlewareT m) m ()
                      -> MiddlewareT m
@@ -46,7 +47,8 @@ fileExtsToMiddleware contentRoutes app req respond = do
     m <- mMiddleware
     return $ m app req respond
 
-
+-- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
+-- a map of responses, find a response.
 lookupResponse :: Monad m =>
                   Maybe AcceptHeader
                -> FileExt
