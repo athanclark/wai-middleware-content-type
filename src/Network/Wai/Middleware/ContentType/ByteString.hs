@@ -38,7 +38,7 @@ bytestringStatusWith :: MonadIO m =>
                      -> FileExtListenerT (MiddlewareT m) m ()
 bytestringStatusWith f fe s hs i = do
   r <- lift $ U.bytestring s hs i
-  middleware fe $ \_ _ respond -> liftIO $ respond $ f r
+  middleware fe $ \_ _ respond -> respond (f r)
 
 
 -- * Raw @Response@s
