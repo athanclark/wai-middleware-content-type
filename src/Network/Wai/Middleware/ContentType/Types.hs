@@ -1,10 +1,12 @@
 {-# LANGUAGE
-    DeriveFunctor
+    TypeFamilies
+  , DeriveFunctor
   , FlexibleContexts
   , DeriveTraversable
   , OverloadedStrings
   , FlexibleInstances
   , StandaloneDeriving
+  , UndecidableInstances
   , MultiParamTypeClasses
   , GeneralizedNewtypeDeriving
   #-}
@@ -26,8 +28,18 @@ import           Data.Map
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid
 import           Data.Foldable
-import           Control.Monad.Trans
+import           Control.Applicative
+import           Control.Monad.Base
+import           Control.Monad.Catch
+import           Control.Monad.Cont
+import           Control.Monad.Except
+import           Control.Monad.Trans.Control hiding (embed)
+import           Control.Monad.Trans.Resource
 import           Control.Monad.State
+import           Control.Monad.Writer hiding (tell)
+import           Control.Monad.Reader
+import           Control.Monad.Logger
+import           Control.Monad.Morph
 
 
 tell :: (Monoid w, MonadState w m) => w -> m ()
@@ -78,7 +90,25 @@ newtype FileExts a = FileExts { unFileExts :: Map FileExt a }
 
 newtype FileExtListenerT r m a =
   FileExtListenerT { runFileExtListenerT :: StateT (FileExts r) m a }
-    deriving (Functor, Applicative, Monad, MonadIO, MonadTrans, MonadState (FileExts r))
+    deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
+             , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExts r)
+             , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
+             , MonadMask, MonadLogger, MFunctor
+             )
+
+deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT r m)
+
+instance MonadTransControl (FileExtListenerT r) where
+  type StT (FileExtListenerT r) a = StT (StateT (FileExts r)) a
+  liftWith = defaultLiftWith FileExtListenerT runFileExtListenerT
+  restoreT = defaultRestoreT FileExtListenerT
+
+instance ( MonadBaseControl b m
+         ) => MonadBaseControl b (FileExtListenerT r m) where
+  type StM (FileExtListenerT r m) a = ComposeSt (FileExtListenerT r) m a
+  liftBaseWith = defaultLiftBaseWith
+  restoreM     = defaultRestoreM
+
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExts r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
