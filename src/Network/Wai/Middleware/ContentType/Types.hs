@@ -53,6 +53,7 @@ data FileExt = Html
              | JavaScript
              | Json
              | Text
+             | Markdown
   deriving (Show, Eq, Ord)
 
 
@@ -77,13 +78,15 @@ toExt x | x `elem` htmls       = Just Html
         | x `elem` javascripts = Just JavaScript
         | x `elem` jsons       = Just Json
         | x `elem` texts       = Just Text
-        | otherwise       = Nothing
+        | x `elem` markdowns   = Just Markdown
+        | otherwise            = Nothing
   where
     htmls       = [".htm", ".html"]
     csss        = [".css"]
     javascripts = [".js", ".javascript"]
     jsons       = [".json"]
     texts       = [".txt"]
+    markdowns   = [".md", ".markdown"]
 
 newtype FileExts a = FileExts { unFileExts :: Map FileExt a }
   deriving (Show, Eq, Monoid, Functor, Foldable, Traversable)

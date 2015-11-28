@@ -91,6 +91,7 @@ possibleFileExts fe accept =
     sortFE Json       xs = [Json, JavaScript, Text] `intersect` xs
     sortFE Css        xs = [Css, Text]              `intersect` xs
     sortFE Text       xs = [Text]                   `intersect` xs
+    sortFE Markdown   xs = [Markdown, Text]         `intersect` xs
 
 
 
