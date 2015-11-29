@@ -15,56 +15,56 @@ import           Control.Monad.Trans
 
 
 -- | Uses the @Html@ key in the map, and @"text/html"@ as the content type.
-lucid :: MonadIO m => P.Pandoc -> FileExtListenerT (MiddlewareT m) m ()
-lucid = lucidStatusHeaders status200 [("Content-Type", "text/markdown")]
+markdown :: MonadIO m => P.Pandoc -> FileExtListenerT (MiddlewareT m) m ()
+markdown = markdownStatusHeaders status200 [("Content-Type", "text/markdown")]
 
-lucidWith :: MonadIO m =>
+markdownWith :: MonadIO m =>
              (Response -> Response) -> P.Pandoc
           -> FileExtListenerT (MiddlewareT m) m ()
-lucidWith f = lucidStatusHeadersWith f status200 [("Content-Type", "text/markdown")]
+markdownWith f = markdownStatusHeadersWith f status200 [("Content-Type", "text/markdown")]
 
-lucidStatus :: MonadIO m =>
+markdownStatus :: MonadIO m =>
                Status -> P.Pandoc
             -> FileExtListenerT (MiddlewareT m) m ()
-lucidStatus s = lucidStatusHeaders s [("Content-Type", "text/markdown")]
+markdownStatus s = markdownStatusHeaders s [("Content-Type", "text/markdown")]
 
-lucidStatusWith :: MonadIO m =>
+markdownStatusWith :: MonadIO m =>
                    (Response -> Response) -> Status -> P.Pandoc
                 -> FileExtListenerT (MiddlewareT m) m ()
-lucidStatusWith f s = lucidStatusHeadersWith f s [("Content-Type", "text/markdown")]
+markdownStatusWith f s = markdownStatusHeadersWith f s [("Content-Type", "text/markdown")]
 
-lucidHeaders :: MonadIO m =>
+markdownHeaders :: MonadIO m =>
                 RequestHeaders -> P.Pandoc
              -> FileExtListenerT (MiddlewareT m) m ()
-lucidHeaders = lucidStatusHeaders status200
+markdownHeaders = markdownStatusHeaders status200
 
-lucidHeadersWith :: MonadIO m =>
+markdownHeadersWith :: MonadIO m =>
                     (Response -> Response) -> RequestHeaders -> P.Pandoc
                  -> FileExtListenerT (MiddlewareT m) m ()
-lucidHeadersWith f = lucidStatusHeadersWith f status200
+markdownHeadersWith f = markdownStatusHeadersWith f status200
 
-lucidStatusHeaders :: MonadIO m =>
+markdownStatusHeaders :: MonadIO m =>
                       Status -> RequestHeaders -> P.Pandoc
                    -> FileExtListenerT (MiddlewareT m) m ()
-lucidStatusHeaders = lucidStatusHeadersWith id
+markdownStatusHeaders = markdownStatusHeadersWith id
 
-lucidStatusHeadersWith :: MonadIO m =>
+markdownStatusHeadersWith :: MonadIO m =>
                           (Response -> Response) -> Status -> RequestHeaders -> P.Pandoc
                        -> FileExtListenerT (MiddlewareT m) m ()
-lucidStatusHeadersWith f s hs i = do
+markdownStatusHeadersWith f s hs i = do
   bytestringStatusWith f Html s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
 
 
 
 
-lucidOnly :: P.Pandoc -> Response
-lucidOnly = lucidOnlyStatusHeaders status200 [("Content-Type", "text/markdown")]
+markdownOnly :: P.Pandoc -> Response
+markdownOnly = markdownOnlyStatusHeaders status200 [("Content-Type", "text/markdown")]
 
-lucidOnlyStatus :: Status -> P.Pandoc -> Response
-lucidOnlyStatus s = lucidOnlyStatusHeaders s [("Content-Type", "text/markdown")]
+markdownOnlyStatus :: Status -> P.Pandoc -> Response
+markdownOnlyStatus s = markdownOnlyStatusHeaders s [("Content-Type", "text/markdown")]
 
-lucidOnlyHeaders :: RequestHeaders -> P.Pandoc -> Response
-lucidOnlyHeaders = lucidOnlyStatusHeaders status200
+markdownOnlyHeaders :: RequestHeaders -> P.Pandoc -> Response
+markdownOnlyHeaders = markdownOnlyStatusHeaders status200
 
-lucidOnlyStatusHeaders :: Status -> RequestHeaders -> P.Pandoc -> Response
-lucidOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
+markdownOnlyStatusHeaders :: Status -> RequestHeaders -> P.Pandoc -> Response
+markdownOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
