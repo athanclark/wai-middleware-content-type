@@ -28,6 +28,7 @@ import           Data.Map
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid
 import           Data.Foldable
+import           Data.Url
 import           Control.Applicative
 import           Control.Monad.Base
 import           Control.Monad.Catch
@@ -96,7 +97,7 @@ newtype FileExtListenerT r m a =
     deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
              , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExts r)
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
-             , MonadMask, MonadLogger, MFunctor
+             , MonadMask, MonadLogger, MFunctor, MonadUrl b f
              )
 
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT r m)
