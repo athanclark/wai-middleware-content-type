@@ -20,6 +20,7 @@ import Network.Wai.Middleware.ContentType.Julius     as X
 import Network.Wai.Middleware.ContentType.Lucid      as X
 import Network.Wai.Middleware.ContentType.Lucius     as X
 import Network.Wai.Middleware.ContentType.Text       as X
+import Network.Wai.Middleware.ContentType.Pandoc     as X
 
 import Network.Wai.Trans
 import Network.HTTP.Types (HeaderName)
