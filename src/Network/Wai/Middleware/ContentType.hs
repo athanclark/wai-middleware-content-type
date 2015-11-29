@@ -60,7 +60,7 @@ lookupResponse mAcceptBS f fexts = do
   return $ lookupFileExt mAcceptBS f femap
   where
     lookupFileExt mAccept k (FileExts xs) =
-      let attempts = maybe [Html,Text,Json,JavaScript,Css]
+      let attempts = maybe [Html,Text,Json,JavaScript,Css,Markdown]
                        (possibleFileExts k) mAccept
       in getFirst $ foldMap (\f' -> First $ Map.lookup f' xs) attempts
 
@@ -77,12 +77,14 @@ possibleFileExts fe accept =
                               ] accept
                   , mapAccept [ ("text/plain" :: BS.ByteString, [Text])
                               ] accept
+                  , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown, Text])
+                              ] accept
                   , mapAccept [ ("text/css" :: BS.ByteString, [Css])
                               ] accept
                   ]
 
       wildcard = concat $
-        catMaybes [ mapAccept [ ("*/*" :: BS.ByteString, [Html,Text,Json,JavaScript,Css])
+        catMaybes [ mapAccept [ ("*/*" :: BS.ByteString, [Html,Text,Json,JavaScript,Css,Markdown])
                               ] accept
                   ]
   in if not (null wildcard) then wildcard else computed
