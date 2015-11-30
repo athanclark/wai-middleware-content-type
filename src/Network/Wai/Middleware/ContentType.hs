@@ -57,7 +57,6 @@ lookupResponse :: MonadIO m =>
                -> m (Maybe (MiddlewareT m))
 lookupResponse mAcceptBS mFe fexts = do
   femap <- execFileExtListenerT fexts
-  liftIO $ print mFe
   return $ lookupFileExt femap
   where
     lookupFileExt xs =
