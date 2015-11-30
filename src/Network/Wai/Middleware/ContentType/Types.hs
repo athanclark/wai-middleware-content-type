@@ -57,21 +57,25 @@ data FileExt = Html
   deriving (Show, Eq, Ord)
 
 
-getFileExt :: Request -> FileExt
-getFileExt req = fromMaybe Html $ case pathInfo req of
-  [] -> Just Html
+-- | Gets the known file extension from a Request's 'Network.Wai.pathInfo'.
+getFileExt :: Request -> Maybe FileExt
+getFileExt req = case pathInfo req of
+  [] -> Nothing
   xs -> toExt $ T.pack $ getLastExt $ T.unpack $ last xs
   where
     getLastExt ts = evalState (foldrM go [] ts) False
-    go c soFar = do
-      sawPeriod <- get
-      if sawPeriod
-      then return soFar
-      else if c == '.'
-           then do put True
-                   return ('.' : soFar)
-           else return (c : soFar)
+      where
+        go c soFar = do
+          sawPeriod <- get
+          if sawPeriod
+          then return soFar
+          else if c == '.'
+               then do put True
+                       return ('.' : soFar)
+               else return (c : soFar)
 
+-- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
+--   to a known one.
 toExt :: T.Text -> Maybe FileExt
 toExt x | x `elem` htmls       = Just Html
         | x `elem` csss        = Just Css
@@ -114,6 +118,3 @@ instance ( MonadBaseControl b m
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
-
-
-
