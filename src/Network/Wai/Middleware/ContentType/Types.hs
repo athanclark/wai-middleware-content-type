@@ -2,7 +2,6 @@
     TypeFamilies
   , DeriveFunctor
   , FlexibleContexts
-  , DeriveTraversable
   , OverloadedStrings
   , FlexibleInstances
   , StandaloneDeriving
