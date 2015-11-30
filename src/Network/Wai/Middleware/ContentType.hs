@@ -50,13 +50,14 @@ fileExtsToMiddleware contentRoutes app req respond = do
 
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
-lookupResponse :: Monad m =>
+lookupResponse :: MonadIO m =>
                   Maybe AcceptHeader
                -> Maybe FileExt
                -> FileExtListenerT (MiddlewareT m) m ()
                -> m (Maybe (MiddlewareT m))
 lookupResponse mAcceptBS mFe fexts = do
   femap <- execFileExtListenerT fexts
+  liftIO $ print mFe
   return $ lookupFileExt femap
   where
     lookupFileExt xs =
@@ -67,29 +68,29 @@ lookupResponse mAcceptBS mFe fexts = do
 -- | Takes a file extension and an @Accept@ header, and returns the other
 -- file types handleable, in order of prescedence.
 possibleFileExts :: Maybe FileExt -> AcceptHeader -> [FileExt]
-possibleFileExts mFe accept =
-  let computed :: [FileExt]
-      computed = sortFE $ nub $ concat $
-        catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
-                              , ("application/javascript" :: BS.ByteString, [Json,JavaScript])
-                              ] accept
-                  , mapAccept [ ("text/html" :: BS.ByteString, [Html])
-                              ] accept
-                  , mapAccept [ ("text/plain" :: BS.ByteString, [Text])
-                              ] accept
-                  , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown, Text])
-                              ] accept
-                  , mapAccept [ ("text/css" :: BS.ByteString, [Css])
-                              ] accept
-                  ]
-
-      wildcard :: [FileExt]
-      wildcard = sortFE $ concat $
-        catMaybes [ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
-                              ] accept
-                  ]
-  in if not (null wildcard) then wildcard else computed
+possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
   where
+    computed :: [FileExt]
+    computed = sortFE $ nub $ concat $
+      catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
+                            , ("application/javascript" :: BS.ByteString, [Json,JavaScript])
+                            ] accept
+                , mapAccept [ ("text/html" :: BS.ByteString, [Html])
+                            ] accept
+                , mapAccept [ ("text/plain" :: BS.ByteString, [Text])
+                            ] accept
+                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown, Text])
+                            ] accept
+                , mapAccept [ ("text/css" :: BS.ByteString, [Css])
+                            ] accept
+                ]
+
+    wildcard :: [FileExt]
+    wildcard = sortFE $ concat $
+      catMaybes [ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
+                            ] accept
+                ]
+
     sortFE :: [FileExt] -> [FileExt]
     sortFE xs = maybe xs (\fe -> go fe `intersect` xs) mFe
       where
