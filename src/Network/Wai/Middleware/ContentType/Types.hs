@@ -24,7 +24,6 @@ module Network.Wai.Middleware.ContentType.Types
 import           Network.Wai.Trans
 import qualified Data.Text              as T
 import           Data.Map
-import           Data.Maybe (fromMaybe)
 import           Data.Monoid
 import           Data.Foldable
 import           Data.Url
