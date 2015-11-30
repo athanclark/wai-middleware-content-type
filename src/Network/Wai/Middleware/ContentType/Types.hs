@@ -15,14 +15,13 @@ module Network.Wai.Middleware.ContentType.Types
   ( FileExt (..)
   , getFileExt
   , toExt
-  , FileExts (..)
+  , FileExtMap
   , FileExtListenerT (..)
   , execFileExtListenerT
-  , mapFileExts
   , tell
   ) where
 
-import           Network.Wai
+import           Network.Wai.Trans
 import qualified Data.Text              as T
 import           Data.Map
 import           Data.Maybe (fromMaybe)
@@ -89,21 +88,20 @@ toExt x | x `elem` htmls       = Just Html
     texts       = [".txt"]
     markdowns   = [".md", ".markdown"]
 
-newtype FileExts a = FileExts { unFileExts :: Map FileExt a }
-  deriving (Show, Eq, Monoid, Functor, Foldable, Traversable)
+type FileExtMap a = Map FileExt a
 
 newtype FileExtListenerT r m a =
-  FileExtListenerT { runFileExtListenerT :: StateT (FileExts r) m a }
+  FileExtListenerT { runFileExtListenerT :: StateT (FileExtMap r) m a }
     deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
-             , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExts r)
+             , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExtMap r)
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
-             , MonadMask, MonadLogger, MFunctor, MonadUrl b f
+             , MonadMask, MonadLogger, MonadUrl b f, MFunctor
              )
 
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT r m)
 
 instance MonadTransControl (FileExtListenerT r) where
-  type StT (FileExtListenerT r) a = StT (StateT (FileExts r)) a
+  type StT (FileExtListenerT r) a = StT (StateT (FileExtMap r)) a
   liftWith = defaultLiftWith FileExtListenerT runFileExtListenerT
   restoreT = defaultRestoreT FileExtListenerT
 
@@ -114,14 +112,8 @@ instance ( MonadBaseControl b m
   restoreM     = defaultRestoreM
 
 
-execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExts r)
+execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
 
-mapFileExts :: Monad m =>
-               (a -> b)
-            -> FileExtListenerT a m () -> FileExtListenerT b m ()
-mapFileExts f fl = do
-  femap <- lift $ execFileExtListenerT fl
-  tell $ f <$> femap
 
 

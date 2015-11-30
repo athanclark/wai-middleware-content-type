@@ -10,4 +10,4 @@ middleware :: Monad m =>
               FileExt
            -> MiddlewareT m
            -> FileExtListenerT (MiddlewareT m) m ()
-middleware f m = tell $ FileExts $ Map.singleton f m
+middleware f m = tell $ Map.singleton f m

@@ -53,13 +53,13 @@ fileExtsToMiddleware contentRoutes app req respond = do
 lookupResponse :: Monad m =>
                   Maybe AcceptHeader
                -> FileExt
-               -> FileExtListenerT a m ()
-               -> m (Maybe a)
+               -> FileExtListenerT (MiddlewareT m) m ()
+               -> m (Maybe (MiddlewareT m))
 lookupResponse mAcceptBS f fexts = do
   femap <- execFileExtListenerT fexts
   return $ lookupFileExt mAcceptBS f femap
   where
-    lookupFileExt mAccept k (FileExts xs) =
+    lookupFileExt mAccept k xs =
       let attempts = maybe [Html,Text,Json,JavaScript,Css,Markdown]
                        (possibleFileExts k) mAccept
       in getFirst $ foldMap (\f' -> First $ Map.lookup f' xs) attempts

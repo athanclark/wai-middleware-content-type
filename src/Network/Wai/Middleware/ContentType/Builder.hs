@@ -35,7 +35,7 @@ builderStatusWith :: MonadIO m =>
 builderStatusWith f e s hs i =
   let r = builderOnlyStatus s hs i in
   FileExtListenerT $ tell $
-    FileExts $ Map.singleton e $ \_ _ respond -> respond (f r)
+    Map.singleton e $ \_ _ respond -> respond (f r)
 
 
 
