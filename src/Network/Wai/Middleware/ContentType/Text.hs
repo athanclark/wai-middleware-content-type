@@ -12,6 +12,7 @@ import qualified Data.Text.Lazy.Encoding                 as LT
 import           Control.Monad.IO.Class                  (MonadIO)
 
 
+-- * Lifted Combinators
 
 -- | Uses @Text@ as the key in the map, and @"text/plain"@ as the content type.
 text :: MonadIO m => LT.Text -> FileExtListenerT (MiddlewareT m) m ()
@@ -55,6 +56,7 @@ textStatusHeadersWith f s hs i =
 
 
 
+-- * 'Network.Wai.Response' Only
 
 textOnly :: LT.Text -> Response
 textOnly = textOnlyStatusHeaders status200 [("Content-Type", "text/plain")]

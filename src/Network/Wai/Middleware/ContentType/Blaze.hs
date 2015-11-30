@@ -14,6 +14,7 @@ import qualified Text.Blaze.Html.Renderer.Text           as H
 import           Control.Monad.IO.Class                  (MonadIO)
 
 
+-- * Lifted Combinators
 
 -- | Uses @Html@ as the key in the map, and @"text/html"@ as the content type.
 blaze :: MonadIO m =>
@@ -57,6 +58,7 @@ blazeStatusHeadersWith f s hs i =
   bytestringStatusWith f Html s hs $ LT.encodeUtf8 $ H.renderHtml i
 
 
+-- * 'Network.Wai.Response' Only
 
 blazeOnly :: H.Html -> Response
 blazeOnly = blazeOnlyStatusHeaders status200 [("Content-Type", "text/html")]

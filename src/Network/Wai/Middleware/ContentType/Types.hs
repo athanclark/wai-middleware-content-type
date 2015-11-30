@@ -11,21 +11,32 @@
   , GeneralizedNewtypeDeriving
   #-}
 
+{- |
+Module      : Network.Wai.Middleware.ContentType.Types
+Copyright   : (c) 2015 Athan Clark
+
+License     : BSD-3
+Maintainer  : athan.clark@gmail.com
+Stability   : experimental
+Portability : GHC
+-}
+
 module Network.Wai.Middleware.ContentType.Types
-  ( FileExt (..)
+  ( -- * Types
+    FileExt (..)
   , getFileExt
   , toExt
   , FileExtMap
   , FileExtListenerT (..)
   , execFileExtListenerT
-  , tell
+  , -- * Utilities
+    tell'
   ) where
 
 import           Network.Wai.Trans
 import qualified Data.Text              as T
 import           Data.Map
 import           Data.Monoid
-import           Data.Foldable
 import           Data.Url
 import           Control.Applicative
 import           Control.Monad.Base
@@ -41,8 +52,9 @@ import           Control.Monad.Logger
 import           Control.Monad.Morph
 
 
-tell :: (Monoid w, MonadState w m) => w -> m ()
-tell x = do
+-- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
+tell' :: (Monoid w, MonadState w m) => w -> m ()
+tell' x = do
   xs <- get
   put $ xs <> x
 
@@ -60,18 +72,7 @@ data FileExt = Html
 getFileExt :: Request -> Maybe FileExt
 getFileExt req = case pathInfo req of
   [] -> Nothing
-  xs -> toExt $ T.pack $ getLastExt $ T.unpack $ last xs
-  where
-    getLastExt ts = evalState (foldrM go [] ts) False
-      where
-        go c soFar = do
-          sawPeriod <- get
-          if sawPeriod
-          then return soFar
-          else if c == '.'
-               then do put True
-                       return ('.' : soFar)
-               else return (c : soFar)
+  xs -> toExt $ snd $ T.breakOn "." $ last xs
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
@@ -93,6 +94,13 @@ toExt x | x `elem` htmls       = Just Html
 
 type FileExtMap a = Map FileExt a
 
+-- | The monad for our DSL - when using the combinators, our result will be this
+--   type:
+--
+--   > myListener :: FileExtListenerT (MiddlewareT m) m ()
+--   > myListener = do
+--   >   text "Text!"
+--   >   json ("Json!" :: T.Text)
 newtype FileExtListenerT r m a =
   FileExtListenerT { runFileExtListenerT :: StateT (FileExtMap r) m a }
     deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO

@@ -12,6 +12,7 @@ import           Control.Monad.IO.Class                  (MonadIO)
 
 
 
+-- * Lifted Combinators
 
 -- | Uses @Json@ as the key in the map, and @"application/json"@ as the content type.
 json :: ( A.ToJSON j
@@ -84,6 +85,7 @@ jsonStatusHeadersWith f s hs i =
 
 
 
+-- * 'Network.Wai.Response' Only
 
 jsonOnly :: A.ToJSON j =>
             j -> Response

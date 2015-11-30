@@ -11,6 +11,7 @@ import qualified Data.Map                                as Map
 import           Control.Monad.IO.Class
 
 
+-- * Lifted Combinators
 
 -- | A builder is ambiguous, therefore we require @RequestHeaders@ and a @FileExt@ to be explicitly
 -- supplied.
@@ -34,10 +35,11 @@ builderStatusWith :: MonadIO m =>
                   -> FileExtListenerT (MiddlewareT m) m ()
 builderStatusWith f e s hs i =
   let r = builderOnlyStatus s hs i in
-  FileExtListenerT $ tell $
+  FileExtListenerT $ tell' $
     Map.singleton e $ \_ _ respond -> respond (f r)
 
 
+-- * 'Network.Wai.Response' Only
 
 builderOnly :: RequestHeaders -> BU.Builder -> Response
 builderOnly = builderOnlyStatus status200

@@ -13,6 +13,7 @@ import qualified Data.Text.Lazy.Encoding                 as LT
 import           Control.Monad.IO.Class                  (MonadIO)
 
 
+-- * Lifted Combinators
 
 -- | Uses @Text@ as the key in the map, and @"text/css"@ as the content type.
 clay :: MonadIO m =>
@@ -58,6 +59,7 @@ clayStatusHeadersWith f c as s hs i =
 
 
 
+-- * 'Network.Wai.Response' Only
 
 clayOnly :: Config -> [App] -> Css -> Response
 clayOnly c as = clayOnlyStatusHeaders c as status200 [("Content-Type", "text/css")]

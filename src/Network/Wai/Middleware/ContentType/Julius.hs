@@ -12,6 +12,7 @@ import qualified Data.Text.Lazy.Encoding                 as LT
 import           Control.Monad.IO.Class                  (MonadIO)
 
 
+-- * Lifted Combinators
 
 -- | Uses @julius@ as the key in the map, and @"application/javascript"@ as the content type.
 julius :: MonadIO m =>
@@ -55,6 +56,7 @@ juliusStatusHeadersWith f s hs i =
   bytestringStatusWith f Json s hs $ LT.encodeUtf8 $ renderJavascript i
 
 
+-- * 'Network.Wai.Response' Only
 
 juliusOnly :: Javascript -> Response
 juliusOnly = juliusOnlyStatusHeaders status200 [("Content-Type", "application/javascript")]

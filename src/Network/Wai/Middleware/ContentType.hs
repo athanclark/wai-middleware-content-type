@@ -2,44 +2,94 @@
     OverloadedStrings
   #-}
 
+{- |
+Module      : Network.Wai.Middleware.ContentType
+Copyright   : (c) 2015 Athan Clark
+
+License     : BSD-3
+Maintainer  : athan.clark@gmail.com
+Stability   : experimental
+Portability : GHC
+
+Import this module to use all the application end-point combinators:
+
+> {-# LANGUAGE
+>     OverloadedStrings
+>   #-}
+>
+> import Network.Wai.Middleware.ContentType
+> import qualified Data.Text as T
+> import qualified Lucid as L
+>
+> myApp :: MonadIO m => MiddlewareT
+> myApp = fileExtsToMiddleware $ do
+>   text "Text!"
+>   json ("Json!" :: T.Text)
+>   lucid (L.toHtmlRaw ("Html!" :: T.Text))
+
+If you would like to embed a 'Network.Wai.Trans.MiddlewareT' as a response to
+a particular supported file extension / content type, import
+"Network.Wai.Middleware.ContentType.Middleware":
+
+> import Network.Wai.Middleware.ContentType
+> import Network.Wai.Middleware.ContentType.Middleware
+>
+> myApp = fileExtsToMiddleware $
+>   middleware Css myMiddleware
+-}
+
 module Network.Wai.Middleware.ContentType
-  ( module X
-  , fileExtsToMiddleware
+  ( -- * Utilities
+    fileExtsToMiddleware
   , lookupResponse
   , possibleFileExts
+  , allFileExts
+  , AcceptHeader
+  , -- * Re-Exports
+    module Network.Wai.Middleware.ContentType.Types
+  , module Network.Wai.Middleware.ContentType.Blaze
+  , module Network.Wai.Middleware.ContentType.Builder
+  , module Network.Wai.Middleware.ContentType.ByteString
+  , module Network.Wai.Middleware.ContentType.Cassius
+  , module Network.Wai.Middleware.ContentType.Clay
+  , module Network.Wai.Middleware.ContentType.Json
+  , module Network.Wai.Middleware.ContentType.Julius
+  , module Network.Wai.Middleware.ContentType.Lucid
+  , module Network.Wai.Middleware.ContentType.Lucius
+  , module Network.Wai.Middleware.ContentType.Text
+  , module Network.Wai.Middleware.ContentType.Pandoc
   ) where
-
-import Network.Wai.Middleware.ContentType.Types      as X hiding (tell)
-import Network.Wai.Middleware.ContentType.Blaze      as X
-import Network.Wai.Middleware.ContentType.Builder    as X
-import Network.Wai.Middleware.ContentType.ByteString as X
-import Network.Wai.Middleware.ContentType.Cassius    as X
-import Network.Wai.Middleware.ContentType.Clay       as X
-import Network.Wai.Middleware.ContentType.Json       as X
-import Network.Wai.Middleware.ContentType.Julius     as X
-import Network.Wai.Middleware.ContentType.Lucid      as X
-import Network.Wai.Middleware.ContentType.Lucius     as X
-import Network.Wai.Middleware.ContentType.Text       as X
-import Network.Wai.Middleware.ContentType.Pandoc     as X
 
 import Network.Wai.Trans
 import Network.HTTP.Types (HeaderName)
 import Network.HTTP.Media (mapAccept)
+import Network.Wai.Middleware.ContentType.Types
+import Network.Wai.Middleware.ContentType.Blaze
+import Network.Wai.Middleware.ContentType.Builder
+import Network.Wai.Middleware.ContentType.ByteString
+import Network.Wai.Middleware.ContentType.Cassius
+import Network.Wai.Middleware.ContentType.Clay
+import Network.Wai.Middleware.ContentType.Json
+import Network.Wai.Middleware.ContentType.Julius
+import Network.Wai.Middleware.ContentType.Lucid
+import Network.Wai.Middleware.ContentType.Lucius
+import Network.Wai.Middleware.ContentType.Text
+import Network.Wai.Middleware.ContentType.Pandoc
 
 import qualified Data.ByteString as BS
 import qualified Data.Map as Map
-import Data.List (intersect, nub)
 import Data.Maybe (fromMaybe, catMaybes)
 import Data.Monoid
 import Control.Monad.Trans
+import Control.Monad
 
 
 type AcceptHeader = BS.ByteString
 
 -- | Turn a map of content types to middlewares, into a middleware.
-fileExtsToMiddleware :: MonadIO m =>
-                        FileExtListenerT (MiddlewareT m) m ()
-                     -> MiddlewareT m
+fileExtsToMiddleware :: ( MonadIO m
+                        ) => FileExtListenerT (MiddlewareT m) m ()
+                          -> MiddlewareT m
 fileExtsToMiddleware contentRoutes app req respond = do
   let mAcceptBS = Prelude.lookup ("Accept" :: HeaderName) $ requestHeaders req
       mFe = getFileExt req
@@ -50,11 +100,11 @@ fileExtsToMiddleware contentRoutes app req respond = do
 
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
-lookupResponse :: MonadIO m =>
-                  Maybe AcceptHeader
-               -> Maybe FileExt
-               -> FileExtListenerT (MiddlewareT m) m ()
-               -> m (Maybe (MiddlewareT m))
+lookupResponse :: ( MonadIO m
+                  ) => Maybe AcceptHeader
+                    -> Maybe FileExt
+                    -> FileExtListenerT (MiddlewareT m) m ()
+                    -> m (Maybe (MiddlewareT m))
 lookupResponse mAcceptBS mFe fexts = do
   femap <- execFileExtListenerT fexts
   return $ lookupFileExt femap
@@ -70,42 +120,27 @@ possibleFileExts :: Maybe FileExt -> AcceptHeader -> [FileExt]
 possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
   where
     computed :: [FileExt]
-    computed = sortFE $ nub $ concat $
+    computed = findFE $ concat $
       catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
                             , ("application/javascript" :: BS.ByteString, [Json,JavaScript])
                             ] accept
                 , mapAccept [ ("text/html" :: BS.ByteString, [Html])
                             ] accept
-                , mapAccept [ ("text/plain" :: BS.ByteString, [Text])
+                , mapAccept [ ("text/plain" :: BS.ByteString, [Text, Markdown])
                             ] accept
-                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown, Text])
+                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown])
                             ] accept
                 , mapAccept [ ("text/css" :: BS.ByteString, [Css])
                             ] accept
                 ]
 
     wildcard :: [FileExt]
-    wildcard = sortFE $ concat $
-      catMaybes [ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
-                            ] accept
-                ]
+    wildcard = findFE $ fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
+                                                 ] accept
 
-    sortFE :: [FileExt] -> [FileExt]
-    sortFE xs = maybe xs (\fe -> go fe `intersect` xs) mFe
-      where
-        go Html       = htmls
-        go JavaScript = javascripts
-        go Json       = jsons
-        go Css        = csss
-        go Text       = texts
-        go Markdown   = markdowns
 
-        htmls       = [Html, Text]
-        javascripts = [JavaScript, Text]
-        jsons       = [Json, JavaScript, Text]
-        csss        = [Css, Text]
-        texts       = [Text]
-        markdowns   = [Markdown, Text]
+    findFE :: [FileExt] -> [FileExt]
+    findFE xs = maybe xs (\fe -> fe <$ guard (fe `elem` xs)) mFe
 
 
 -- | All file extensions, in the order of preference

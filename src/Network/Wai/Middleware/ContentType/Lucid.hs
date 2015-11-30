@@ -11,6 +11,7 @@ import qualified Lucid.Base                              as L
 import           Control.Monad.Trans
 
 
+-- * Lifted Combinators
 
 -- | Uses the @Html@ key in the map, and @"text/html"@ as the content type.
 lucid :: MonadIO m => L.HtmlT m () -> FileExtListenerT (MiddlewareT m) m ()
@@ -55,6 +56,7 @@ lucidStatusHeadersWith f s hs i = do
 
 
 
+-- * 'Network.Wai.Response' Only
 
 lucidOnly :: Monad m =>
              L.HtmlT m () -> m Response

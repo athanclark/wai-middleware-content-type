@@ -13,6 +13,7 @@ import qualified Text.Pandoc                              as P
 import           Control.Monad.Trans
 
 
+-- * Lifted Combinators
 
 -- | Uses the @Html@ key in the map, and @"text/html"@ as the content type.
 markdown :: MonadIO m => P.Pandoc -> FileExtListenerT (MiddlewareT m) m ()
@@ -55,7 +56,7 @@ markdownStatusHeadersWith f s hs i = do
   bytestringStatusWith f Html s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
 
 
-
+-- * 'Network.Wai.Response' Only
 
 markdownOnly :: P.Pandoc -> Response
 markdownOnly = markdownOnlyStatusHeaders status200 [("Content-Type", "text/markdown")]

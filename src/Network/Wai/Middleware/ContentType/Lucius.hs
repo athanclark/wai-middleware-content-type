@@ -12,6 +12,7 @@ import qualified Data.Text.Lazy.Encoding                 as LT
 import           Control.Monad.IO.Class                  (MonadIO)
 
 
+-- * Lifted Combinators
 
 -- | Uses @lucius@ as the key in the map, and @"lucius/css"@ as the content type.
 lucius :: MonadIO m => Css -> FileExtListenerT (MiddlewareT m) m ()
@@ -54,6 +55,7 @@ luciusStatusHeadersWith f s hs i =
   bytestringStatusWith f Css s hs $ LT.encodeUtf8 $ renderCss i
 
 
+-- * 'Network.Wai.Response' Only
 
 luciusOnly :: Css -> Response
 luciusOnly = luciusOnlyStatusHeaders status200 [("Content-Type", "lucius/css")]

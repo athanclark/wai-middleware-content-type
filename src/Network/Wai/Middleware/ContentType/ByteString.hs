@@ -13,7 +13,7 @@ import           Control.Monad.Trans (lift)
 import           Control.Monad.IO.Class
 
 
--- * Lifted @MiddlewareT@
+-- * Lifted Combinators
 
 -- | @ByteString@ is ambiguous - we need to know what @RequestHeaders@ and @FileExt@ should be associated.
 bytestring :: MonadIO m => FileExt -> RequestHeaders -> B.ByteString
@@ -40,7 +40,7 @@ bytestringStatusWith f fe s hs i = do
   middleware fe $ \_ _ respond -> respond (f r)
 
 
--- * Raw @Response@s
+-- * 'Network.Wai.Response' Only
 
 bytestringOnly :: RequestHeaders -> B.ByteString -> Response
 bytestringOnly = bytestringOnlyStatus status200
