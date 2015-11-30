@@ -43,6 +43,7 @@ module Network.Wai.Middleware.ContentType
     fileExtsToMiddleware
   , lookupResponse
   , possibleFileExts
+  , invalidEncoding
   , allFileExts
   , AcceptHeader
   , -- * Re-Exports
@@ -75,6 +76,8 @@ import Network.Wai.Middleware.ContentType.Lucid
 import Network.Wai.Middleware.ContentType.Lucius
 import Network.Wai.Middleware.ContentType.Text
 import Network.Wai.Middleware.ContentType.Pandoc
+
+import Network.Wai.Middleware.ContentType.Middleware (middleware)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map as Map
@@ -141,6 +144,15 @@ possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
 
     findFE :: [FileExt] -> [FileExt]
     findFE xs = maybe xs (\fe -> fe <$ guard (fe `elem` xs)) mFe
+
+
+-- | Use this combinator as the last one, as a "catch-all":
+--
+--   > myApp = do
+--   >   text "foo"
+--   >   invalidEncoding myErrorHandler
+invalidEncoding :: MonadIO m => MiddlewareT m -> FileExtListenerT (MiddlewareT m) m ()
+invalidEncoding mid = mapM_ (`middleware` mid) allFileExts
 
 
 -- | All file extensions, in the order of preference
