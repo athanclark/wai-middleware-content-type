@@ -21,7 +21,7 @@ import Network.Wai.Trans
 
 myMiddleware :: MiddleareT (ReaderT Env m)
 
-contentTypeRoutes :: MonadIO m => FileExtListenerT (MiddlewareT (ReaderT Env m)) (ReaderT Env m) ()
+contentTypeRoutes :: MonadIO m => FileExtListenerT (MiddlewareT m) m ()
 contentTypeRoutes = do
   blaze myBlazeResponse
   cassius myCassiusResponse
@@ -29,20 +29,16 @@ contentTypeRoutes = do
   middleware Json myMiddleware
 
 
-contentMiddleware :: MonadIO m => MiddlewareT (ReaderT Env m)
+contentMiddleware :: MonadIO m => MiddlewareT m
 contentMiddleware = fileExtsToMiddleware contentTypeRoutes
 ```
 
 Which you can then decompose into a `Middleware` and use in the rest of your Wai stack.
 
-## Technical Details
+There is a small example under `/examples/Example.hs`, for example. Also, check
+out the [docs on hackage](https://hackage.haskell.org/package/wai-middleware-content-type).
 
-The semantics for a "file extension" is such that the _last_ phrase following the
-_last_ period is the said file extension. Therefore, something like
+---
 
-```
-foo.bar.baz.qux
-```
-
-has a file extension of `.qux`.
-
+This library was designed for use with [nested-routes](https://hackage.haskell.org/package/nested-routes),
+but it's all good if you want to use it separately.
