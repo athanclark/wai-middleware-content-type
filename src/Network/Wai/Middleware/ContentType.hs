@@ -63,7 +63,7 @@ module Network.Wai.Middleware.ContentType
 import Network.Wai.Trans
 import Network.HTTP.Types (HeaderName)
 import Network.HTTP.Media (mapAccept)
-import Network.Wai.Middleware.ContentType.Types
+import Network.Wai.Middleware.ContentType.Types hiding (tell')
 import Network.Wai.Middleware.ContentType.Blaze
 import Network.Wai.Middleware.ContentType.Builder
 import Network.Wai.Middleware.ContentType.ByteString
