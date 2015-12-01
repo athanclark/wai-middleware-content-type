@@ -44,7 +44,6 @@ module Network.Wai.Middleware.ContentType
   , lookupResponse
   , possibleFileExts
   , invalidEncoding
-  , allFileExts
   , AcceptHeader
   , -- * Re-Exports
     module Network.Wai.Middleware.ContentType.Types
@@ -95,7 +94,7 @@ fileExtsToMiddleware :: ( MonadIO m
                           -> MiddlewareT m
 fileExtsToMiddleware contentRoutes app req respond = do
   let mAcceptBS = Prelude.lookup ("Accept" :: HeaderName) $ requestHeaders req
-      mFe = getFileExt req
+      mFe       = getFileExt req
   mMiddleware <- lookupResponse mAcceptBS mFe contentRoutes
   fromMaybe (app req respond) $ do
     mid <- mMiddleware
@@ -113,19 +112,26 @@ lookupResponse mAcceptBS mFe fexts = do
   return $ lookupFileExt femap
   where
     lookupFileExt xs =
-      let attempts = maybe allFileExts (possibleFileExts mFe) mAcceptBS
-      in  getFirst $ foldMap (\f' -> First $ Map.lookup f' xs) attempts
+      let attempts = findFE $ maybe allFileExts possibleFileExts mAcceptBS
+      in  getFirst $ foldMap (First . flip Map.lookup xs) attempts
+
+    findFE :: [FileExt] -> [FileExt]
+    findFE xs =
+      case mFe of
+        Nothing -> []
+        Just fe | fe == None -> xs
+                | otherwise  -> fe <$ guard (fe `elem` xs)
 
 
--- | Takes a file extension and an @Accept@ header, and returns the other
+-- | Takes an @Accept@ header and returns the other
 -- file types handleable, in order of prescedence.
-possibleFileExts :: Maybe FileExt -> AcceptHeader -> [FileExt]
-possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
+possibleFileExts :: AcceptHeader -> [FileExt]
+possibleFileExts accept = if not (null wildcard) then wildcard else computed
   where
     computed :: [FileExt]
-    computed = findFE $ concat $
+    computed = concat $
       catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
-                            , ("application/javascript" :: BS.ByteString, [Json,JavaScript])
+                            , ("application/javascript" :: BS.ByteString, [JavaScript,Json])
                             ] accept
                 , mapAccept [ ("text/html" :: BS.ByteString, [Html])
                             ] accept
@@ -138,12 +144,9 @@ possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
                 ]
 
     wildcard :: [FileExt]
-    wildcard = findFE $ fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
-                                                 ] accept
+    wildcard = fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
+                                        ] accept
 
-
-    findFE :: [FileExt] -> [FileExt]
-    findFE xs = maybe xs (\fe -> fe <$ guard (fe `elem` xs)) mFe
 
 
 -- | Use this combinator as the last one, as a "catch-all":
@@ -154,8 +157,4 @@ possibleFileExts mFe accept = if not (null wildcard) then wildcard else computed
 invalidEncoding :: MonadIO m => MiddlewareT m -> FileExtListenerT (MiddlewareT m) m ()
 invalidEncoding mid = mapM_ (`middleware` mid) allFileExts
 
-
--- | All file extensions, in the order of preference
-allFileExts :: [FileExt]
-allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 

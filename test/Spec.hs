@@ -1,13 +1,13 @@
-module Spec where
+module Main where
 
 import Network.Wai.Middleware.ContentTypeSpec
 
 import Test.Tasty
+import Test.Tasty.Hspec as TH
 
 
 main :: IO ()
-main = defaultMain tests
-
-tests :: TestTree
-tests = testGroup "Testing..."
-  [spec]
+main = do
+  wai <- TH.testSpec "Network.Wai.Middleware.ContentType" mockServer
+  defaultMain $ testGroup "Testing..."
+    [wai]

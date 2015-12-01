@@ -23,6 +23,7 @@ Portability : GHC
 module Network.Wai.Middleware.ContentType.Types
   ( -- * Types
     FileExt (..)
+  , allFileExts
   , getFileExt
   , toExt
   , FileExtMap
@@ -50,6 +51,8 @@ import           Control.Monad.Reader
 import           Control.Monad.Logger
 import           Control.Monad.Morph
 
+import           Test.QuickCheck
+
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
 tell' :: (Monoid w, MonadState w m) => w -> m ()
@@ -64,19 +67,28 @@ data FileExt = Html
              | Json
              | Text
              | Markdown
+             | None
   deriving (Show, Eq, Ord)
+
+instance Arbitrary FileExt where
+  arbitrary = oneof $ pure <$> allFileExts
+
+-- | All file extensions, in the order of likeliness
+allFileExts :: [FileExt]
+allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 
 
 -- | Gets the known file extension from a Request's 'Network.Wai.pathInfo'.
 getFileExt :: Request -> Maybe FileExt
 getFileExt req = case pathInfo req of
-  [] -> Nothing
+  [] -> Just None
   xs -> toExt $ snd $ T.breakOn "." $ last xs
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
 toExt :: T.Text -> Maybe FileExt
-toExt x | x `elem` htmls       = Just Html
+toExt x | x == ""              = Just None
+        | x `elem` htmls       = Just Html
         | x `elem` csss        = Just Css
         | x `elem` javascripts = Just JavaScript
         | x `elem` jsons       = Just Json

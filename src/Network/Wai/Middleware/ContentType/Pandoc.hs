@@ -53,7 +53,7 @@ markdownStatusHeadersWith :: MonadIO m =>
                           (Response -> Response) -> Status -> RequestHeaders -> P.Pandoc
                        -> FileExtListenerT (MiddlewareT m) m ()
 markdownStatusHeadersWith f s hs i =
-  bytestringStatusWith f Html s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
+  bytestringStatusWith f Markdown s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
 
 
 -- * 'Network.Wai.Response' Only

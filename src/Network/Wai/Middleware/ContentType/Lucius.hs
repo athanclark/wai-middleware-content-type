@@ -16,22 +16,22 @@ import           Control.Monad.IO.Class                  (MonadIO)
 
 -- | Uses @lucius@ as the key in the map, and @"lucius/css"@ as the content type.
 lucius :: MonadIO m => Css -> FileExtListenerT (MiddlewareT m) m ()
-lucius = luciusStatusHeaders status200 [("Content-Type", "lucius/css")]
+lucius = luciusStatusHeaders status200 [("Content-Type", "text/css")]
 
 luciusWith :: MonadIO m =>
               (Response -> Response) -> Css
            -> FileExtListenerT (MiddlewareT m) m ()
-luciusWith f = luciusStatusHeadersWith f status200 [("Content-Type", "lucius/css")]
+luciusWith f = luciusStatusHeadersWith f status200 [("Content-Type", "text/css")]
 
 luciusStatus :: MonadIO m =>
                 Status -> Css
              -> FileExtListenerT (MiddlewareT m) m ()
-luciusStatus s = luciusStatusHeaders s [("Content-Type", "lucius/css")]
+luciusStatus s = luciusStatusHeaders s [("Content-Type", "text/css")]
 
 luciusStatusWith :: MonadIO m =>
                     (Response -> Response) -> Status -> Css
                  -> FileExtListenerT (MiddlewareT m) m ()
-luciusStatusWith f s = luciusStatusHeadersWith f s [("Content-Type", "lucius/css")]
+luciusStatusWith f s = luciusStatusHeadersWith f s [("Content-Type", "text/css")]
 
 luciusHeaders :: MonadIO m =>
                  RequestHeaders -> Css
@@ -58,10 +58,10 @@ luciusStatusHeadersWith f s hs i =
 -- * 'Network.Wai.Response' Only
 
 luciusOnly :: Css -> Response
-luciusOnly = luciusOnlyStatusHeaders status200 [("Content-Type", "lucius/css")]
+luciusOnly = luciusOnlyStatusHeaders status200 [("Content-Type", "text/css")]
 
 luciusOnlyStatus :: Status -> Css -> Response
-luciusOnlyStatus s = luciusOnlyStatusHeaders s [("Content-Type", "lucius/css")]
+luciusOnlyStatus s = luciusOnlyStatusHeaders s [("Content-Type", "text/css")]
 
 luciusOnlyHeaders :: RequestHeaders -> Css -> Response
 luciusOnlyHeaders = luciusOnlyStatusHeaders status200

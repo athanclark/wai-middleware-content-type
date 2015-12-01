@@ -16,22 +16,22 @@ import           Control.Monad.IO.Class                  (MonadIO)
 
 -- | Uses @cassius@ as the key in the map, and @"cassius/plain"@ as the content type.
 cassius :: MonadIO m => Css -> FileExtListenerT (MiddlewareT m) m ()
-cassius = cassiusStatusHeaders status200 [("Content-Type", "cassius/css")]
+cassius = cassiusStatusHeaders status200 [("Content-Type", "text/css")]
 
 cassiusWith :: MonadIO m =>
                (Response -> Response) -> Css
             -> FileExtListenerT (MiddlewareT m) m ()
-cassiusWith f = cassiusStatusHeadersWith f status200 [("Content-Type", "cassius/css")]
+cassiusWith f = cassiusStatusHeadersWith f status200 [("Content-Type", "text/css")]
 
 cassiusStatus :: MonadIO m =>
                  Status -> Css
               -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatus s = cassiusStatusHeaders s [("Content-Type", "cassius/css")]
+cassiusStatus s = cassiusStatusHeaders s [("Content-Type", "text/css")]
 
 cassiusStatusWith :: MonadIO m =>
                      (Response -> Response) -> Status -> Css
                   -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatusWith f s = cassiusStatusHeadersWith f s [("Content-Type", "cassius/css")]
+cassiusStatusWith f s = cassiusStatusHeadersWith f s [("Content-Type", "text/css")]
 
 cassiusHeaders :: MonadIO m =>
                   RequestHeaders -> Css
@@ -58,10 +58,10 @@ cassiusStatusHeadersWith f s hs i =
 -- * 'Network.Wai.Response' Only
 
 cassiusOnly :: Css -> Response
-cassiusOnly = cassiusOnlyStatusHeaders status200 [("Content-Type", "cassius/css")]
+cassiusOnly = cassiusOnlyStatusHeaders status200 [("Content-Type", "text/css")]
 
 cassiusOnlyStatus :: Status -> Css -> Response
-cassiusOnlyStatus s = cassiusOnlyStatusHeaders s [("Content-Type", "cassius/css")]
+cassiusOnlyStatus s = cassiusOnlyStatusHeaders s [("Content-Type", "text/css")]
 
 cassiusOnlyHeaders :: RequestHeaders -> Css -> Response
 cassiusOnlyHeaders = cassiusOnlyStatusHeaders status200
