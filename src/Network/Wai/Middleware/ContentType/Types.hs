@@ -51,8 +51,6 @@ import           Control.Monad.Reader
 import           Control.Monad.Logger
 import           Control.Monad.Morph
 
-import           Test.QuickCheck
-
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
 tell' :: (Monoid w, MonadState w m) => w -> m ()
@@ -69,9 +67,6 @@ data FileExt = Html
              | Markdown
              | None
   deriving (Show, Eq, Ord)
-
-instance Arbitrary FileExt where
-  arbitrary = oneof $ pure <$> allFileExts
 
 -- | All file extensions, in the order of likeliness
 allFileExts :: [FileExt]

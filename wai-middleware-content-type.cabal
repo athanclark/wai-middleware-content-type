@@ -50,7 +50,6 @@ Library
                       , monad-logger
                       , mtl
                       , pandoc
-                      , QuickCheck
                       , resourcet
                       , shakespeare
                       , text
@@ -102,7 +101,6 @@ Test-Suite test
                       , mtl
                       , pandoc
                       , pandoc-types
-                      , QuickCheck
                       , resourcet
                       , shakespeare
                       , text
