@@ -155,10 +155,6 @@ mockServer = do
         it "should respond with 406" $
         HW.request "GET" "/index.txt" [("Accept", "foo/bar")] "" `shouldRespondWith`
         406
-      describe "Json with non-file extension" $
-        it "should respond with 406" $
-        HW.request "GET" "/index.asdf" [("Accept", "application/json")] "" `shouldRespondWith`
-        406
 
 app :: Application
 app = fileExtsToMiddleware allExamples $ \_ resp ->

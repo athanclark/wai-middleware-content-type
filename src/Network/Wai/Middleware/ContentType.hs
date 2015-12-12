@@ -94,7 +94,7 @@ fileExtsToMiddleware :: ( MonadIO m
                           -> MiddlewareT m
 fileExtsToMiddleware contentRoutes app req respond = do
   let mAcceptBS = Prelude.lookup ("Accept" :: HeaderName) $ requestHeaders req
-      mFe       = getFileExt req
+      mFe       = getFileExt (pathInfo req)
   mMiddleware <- lookupResponse mAcceptBS mFe contentRoutes
   fromMaybe (app req respond) $ do
     mid <- mMiddleware
@@ -107,9 +107,8 @@ lookupResponse :: ( MonadIO m
                     -> Maybe FileExt
                     -> FileExtListenerT (MiddlewareT m) m ()
                     -> m (Maybe (MiddlewareT m))
-lookupResponse mAcceptBS mFe fexts = do
-  fes <- execFileExtListenerT fexts
-  pure (lookupFileExt fes)
+lookupResponse mAcceptBS mFe fexts =
+  lookupFileExt <$> execFileExtListenerT fexts
   where
     lookupFileExt xs =
       let attempts = findFE $ maybe allFileExts possibleFileExts mAcceptBS
@@ -118,9 +117,8 @@ lookupResponse mAcceptBS mFe fexts = do
     findFE :: [FileExt] -> [FileExt]
     findFE xs =
       case mFe of
-        Nothing -> []
-        Just fe | fe == None -> xs
-                | otherwise  -> fe <$ guard (fe `elem` xs)
+        Nothing -> xs
+        Just fe -> fe <$ guard (fe `elem` xs)
 
 
 -- | Takes an @Accept@ header and returns the other

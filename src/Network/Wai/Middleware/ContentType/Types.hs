@@ -68,7 +68,6 @@ data FileExt
   | Json
   | Text
   | Markdown
-  | None
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable FileExt
@@ -79,16 +78,15 @@ allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 
 
 -- | Gets the known file extension from a Request's 'Network.Wai.pathInfo'.
-getFileExt :: Request -> Maybe FileExt
-getFileExt req = case pathInfo req of
-  [] -> Just None
+getFileExt :: [T.Text] -> Maybe FileExt
+getFileExt chunks = case chunks of
+  [] -> Nothing
   xs -> toExt . snd . T.breakOn "." $ last xs
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
 toExt :: T.Text -> Maybe FileExt
-toExt x | x == ""              = Just None
-        | x `elem` htmls       = Just Html
+toExt x | x `elem` htmls       = Just Html
         | x `elem` csss        = Just Css
         | x `elem` javascripts = Just JavaScript
         | x `elem` jsons       = Just Json
