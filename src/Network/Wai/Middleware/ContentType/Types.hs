@@ -78,12 +78,15 @@ instance Hashable FileExt
 allFileExts :: [FileExt]
 allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 
+{-# INLINEABLE allFileExts #-}
 
 -- | Gets the known file extension from a Request's 'Network.Wai.pathInfo'.
 getFileExt :: [T.Text] -> Maybe FileExt
 getFileExt chunks = case chunks of
   [] -> Nothing
   xs -> toExt . snd . T.breakOn "." $ last xs
+
+{-# INLINEABLE getFileExt #-}
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
@@ -102,6 +105,8 @@ toExt x | x `elem` htmls       = Just Html
     jsons       = [".json"]
     texts       = [".txt"]
     markdowns   = [".md", ".markdown"]
+
+{-# INLINEABLE toExt #-}
 
 type FileExtMap a = HashMap FileExt a
 
@@ -136,3 +141,5 @@ instance ( MonadBaseControl b m
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
+
+{-# INLINEABLE execFileExtListenerT #-}

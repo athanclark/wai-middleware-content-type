@@ -98,7 +98,9 @@ fileExtsToMiddleware contentRoutes app req respond = do
   mMiddleware <- lookupResponse mAcceptBS mFe contentRoutes
   fromMaybe (app req respond) $ do
     mid <- mMiddleware
-    return $ mid app req respond
+    pure (mid app req respond)
+
+{-# INLINEABLE fileExtsToMiddleware #-}
 
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
@@ -120,6 +122,7 @@ lookupResponse mAcceptBS mFe fexts =
         Nothing -> xs
         Just fe -> fe <$ guard (fe `elem` xs)
 
+{-# INLINEABLE lookupResponse #-}
 
 -- | Takes an @Accept@ header and returns the other
 -- file types handleable, in order of prescedence.
@@ -145,7 +148,7 @@ possibleFileExts accept = if not (null wildcard) then wildcard else computed
     wildcard = fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
                                         ] accept
 
-
+{-# INLINEABLE possibleFileExts #-}
 
 -- | Use this combinator as the last one, as a "catch-all":
 --
@@ -155,4 +158,4 @@ possibleFileExts accept = if not (null wildcard) then wildcard else computed
 invalidEncoding :: MonadIO m => MiddlewareT m -> FileExtListenerT (MiddlewareT m) m ()
 invalidEncoding mid = mapM_ (`middleware` mid) allFileExts
 
-
+{-# INLINEABLE invalidEncoding #-}
