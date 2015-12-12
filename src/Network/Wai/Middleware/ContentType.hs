@@ -78,8 +78,8 @@ import Network.Wai.Middleware.ContentType.Pandoc
 
 import Network.Wai.Middleware.ContentType.Middleware (middleware)
 
-import qualified Data.ByteString as BS
-import qualified Data.Map as Map
+import qualified Data.ByteString   as BS
+import qualified Data.HashMap.Lazy as HM
 import Data.Maybe (fromMaybe, catMaybes)
 import Data.Monoid
 import Control.Monad.Trans
@@ -113,7 +113,7 @@ lookupResponse mAcceptBS mFe fexts = do
   where
     lookupFileExt xs =
       let attempts = findFE $ maybe allFileExts possibleFileExts mAcceptBS
-      in  getFirst $ foldMap (First . flip Map.lookup xs) attempts
+      in  getFirst $ foldMap (First . flip HM.lookup xs) attempts
 
     findFE :: [FileExt] -> [FileExt]
     findFE xs =

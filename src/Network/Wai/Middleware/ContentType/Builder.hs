@@ -7,7 +7,7 @@ import           Network.HTTP.Types                      (RequestHeaders, Status
 import           Network.Wai.Trans
 
 import qualified Data.ByteString.Builder                 as BU
-import qualified Data.Map                                as Map
+import qualified Data.HashMap.Lazy                       as HM
 import           Control.Monad.IO.Class
 
 
@@ -36,7 +36,7 @@ builderStatusWith :: MonadIO m =>
 builderStatusWith f e s hs i =
   let r = builderOnlyStatus s hs i in
   FileExtListenerT $ tell' $
-    Map.singleton e $ \_ _ respond -> respond (f r)
+    HM.singleton e $ \_ _ respond -> respond (f r)
 
 
 -- * 'Network.Wai.Response' Only

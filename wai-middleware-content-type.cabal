@@ -40,8 +40,8 @@ Library
                       , blaze-html
                       , bytestring
                       , clay
-                      , containers
                       , exceptions
+                      , hashable
                       , http-media
                       , http-types
                       , lucid
@@ -55,6 +55,7 @@ Library
                       , text
                       , transformers
                       , transformers-base
+                      , unordered-containers
                       , urlpath >= 5.0.0.1
                       , wai
                       , wai-transformers >= 0.0.4
@@ -88,8 +89,8 @@ Test-Suite test
                       , blaze-html
                       , bytestring
                       , clay
-                      , containers
                       , exceptions
+                      , hashable
                       , hspec
                       , hspec-wai
                       , http-media
@@ -109,6 +110,7 @@ Test-Suite test
                       , transformers
                       , transformers-base
                       , urlpath
+                      , unordered-containers
                       , wai
                       , wai-transformers
                       , wai-util
@@ -144,8 +146,8 @@ Executable example
                       , blaze-html
                       , bytestring
                       , clay
-                      , containers
                       , exceptions
+                      , hashable
                       , http-media
                       , http-types
                       , lucid
@@ -160,6 +162,7 @@ Executable example
                       , transformers
                       , transformers-base
                       , urlpath
+                      , unordered-containers
                       , wai
                       , wai-transformers
                       , wai-util

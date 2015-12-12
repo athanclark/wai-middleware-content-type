@@ -1,6 +1,7 @@
 {-# LANGUAGE
     TypeFamilies
   , DeriveFunctor
+  , DeriveGeneric
   , FlexibleContexts
   , OverloadedStrings
   , FlexibleInstances
@@ -35,9 +36,10 @@ module Network.Wai.Middleware.ContentType.Types
 
 import           Network.Wai.Trans
 import qualified Data.Text              as T
-import           Data.Map
+import           Data.HashMap.Lazy
 import           Data.Monoid
 import           Data.Url
+import           Data.Hashable
 import           Control.Applicative
 import           Control.Monad.Base
 import           Control.Monad.Catch
@@ -51,12 +53,12 @@ import           Control.Monad.Reader
 import           Control.Monad.Logger
 import           Control.Monad.Morph
 
+import           GHC.Generics
+
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
 tell' :: (Monoid w, MonadState w m) => w -> m ()
-tell' x = do
-  xs <- get
-  put $ xs <> x
+tell' x = modify (<> x)
 
 -- | Supported file extensions
 data FileExt = Html
@@ -66,7 +68,9 @@ data FileExt = Html
              | Text
              | Markdown
              | None
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Generic)
+
+instance Hashable FileExt
 
 -- | All file extensions, in the order of likeliness
 allFileExts :: [FileExt]
@@ -98,7 +102,7 @@ toExt x | x == ""              = Just None
     texts       = [".txt"]
     markdowns   = [".md", ".markdown"]
 
-type FileExtMap a = Map FileExt a
+type FileExtMap a = HashMap FileExt a
 
 -- | The monad for our DSL - when using the combinators, our result will be this
 --   type:
@@ -107,9 +111,9 @@ type FileExtMap a = Map FileExt a
 --   > myListener = do
 --   >   text "Text!"
 --   >   json ("Json!" :: T.Text)
-newtype FileExtListenerT r m a =
-  FileExtListenerT { runFileExtListenerT :: StateT (FileExtMap r) m a }
-    deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
+newtype FileExtListenerT r m a = FileExtListenerT
+  { runFileExtListenerT :: StateT (FileExtMap r) m a
+  } deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
              , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExtMap r)
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
              , MonadMask, MonadLogger, MonadUrl b f, MFunctor
