@@ -58,7 +58,7 @@ import           GHC.Generics
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
 tell' :: (Monoid w, MonadState w m) => w -> m ()
-tell' x = modify (<> x)
+tell' x = modify' (<> x)
 
 -- | Supported file extensions
 data FileExt
