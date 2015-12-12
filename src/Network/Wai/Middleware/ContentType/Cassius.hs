@@ -3,7 +3,7 @@
 module Network.Wai.Middleware.ContentType.Cassius where
 
 import           Network.Wai.Middleware.ContentType.Types as FE
-import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.Wai.Middleware.ContentType.Builder
 import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
 import           Network.Wai.Trans
 
@@ -51,8 +51,8 @@ cassiusStatusHeaders = cassiusStatusHeadersWith id
 cassiusStatusHeadersWith :: MonadIO m =>
                             (Response -> Response) -> Status -> RequestHeaders -> Css
                          -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatusHeadersWith f s hs i =
-  bytestringStatusWith f Css s hs $ LT.encodeUtf8 $ renderCss i
+cassiusStatusHeadersWith f s hs =
+  builderStatusWith f Css s hs . LT.encodeUtf8Builder . renderCss
 
 
 -- * 'Network.Wai.Response' Only
@@ -67,4 +67,4 @@ cassiusOnlyHeaders :: RequestHeaders -> Css -> Response
 cassiusOnlyHeaders = cassiusOnlyStatusHeaders status200
 
 cassiusOnlyStatusHeaders :: Status -> RequestHeaders -> Css -> Response
-cassiusOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs $ LT.encodeUtf8 $ renderCss i
+cassiusOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . renderCss

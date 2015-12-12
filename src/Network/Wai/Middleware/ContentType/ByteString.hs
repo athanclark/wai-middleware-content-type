@@ -20,13 +20,20 @@ bytestring :: MonadIO m => FileExt -> RequestHeaders -> B.ByteString
            -> FileExtListenerT (MiddlewareT m) m ()
 bytestring e = bytestringStatus e status200
 
+{-# INLINEABLE bytestring #-}
+
 bytestringWith :: MonadIO m => (Response -> Response) -> FileExt -> RequestHeaders -> B.ByteString
                -> FileExtListenerT (MiddlewareT m) m ()
 bytestringWith f e = bytestringStatusWith f e status200
 
+{-# INLINEABLE bytestringWith #-}
+
 bytestringStatus :: MonadIO m => FileExt -> Status -> RequestHeaders -> B.ByteString
                  -> FileExtListenerT (MiddlewareT m) m ()
 bytestringStatus = bytestringStatusWith id
+
+{-# INLINEABLE bytestringStatus #-}
+
 
 bytestringStatusWith :: MonadIO m =>
                         (Response -> Response)
@@ -37,7 +44,9 @@ bytestringStatusWith :: MonadIO m =>
                      -> FileExtListenerT (MiddlewareT m) m ()
 bytestringStatusWith f fe s hs i = do
   r <- lift $ U.bytestring s hs i
-  middleware fe $ \_ _ respond -> respond (f r)
+  middleware fe (\_ _ respond -> respond (f r))
+
+{-# INLINEABLE bytestringStatusWith #-}
 
 
 -- * 'Network.Wai.Response' Only
@@ -45,6 +54,10 @@ bytestringStatusWith f fe s hs i = do
 bytestringOnly :: RequestHeaders -> B.ByteString -> Response
 bytestringOnly = bytestringOnlyStatus status200
 
+{-# INLINEABLE bytestringOnly #-}
+
 -- | The exact same thing as @Network.Wai.responseLBS@.
 bytestringOnlyStatus :: Status -> RequestHeaders -> B.ByteString -> Response
 bytestringOnlyStatus = responseLBS
+
+{-# INLINEABLE bytestringOnlyStatus #-}

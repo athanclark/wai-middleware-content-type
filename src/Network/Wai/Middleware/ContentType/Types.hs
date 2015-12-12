@@ -60,6 +60,8 @@ import           GHC.Generics
 tell' :: (Monoid w, MonadState w m) => w -> m ()
 tell' x = modify' (<> x)
 
+{-# INLINEABLE tell' #-}
+
 -- | Supported file extensions
 data FileExt
   = Html

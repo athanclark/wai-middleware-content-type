@@ -3,7 +3,7 @@
 module Network.Wai.Middleware.ContentType.Pandoc where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.Wai.Middleware.ContentType.Builder
 import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
 import           Network.Wai.Trans
 
@@ -52,8 +52,8 @@ markdownStatusHeaders = markdownStatusHeadersWith id
 markdownStatusHeadersWith :: MonadIO m =>
                           (Response -> Response) -> Status -> RequestHeaders -> P.Pandoc
                        -> FileExtListenerT (MiddlewareT m) m ()
-markdownStatusHeadersWith f s hs i =
-  bytestringStatusWith f Markdown s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
+markdownStatusHeadersWith f s hs =
+  builderStatusWith f Markdown s hs . LT.encodeUtf8Builder . LT.pack . P.writeMarkdown P.def
 
 
 -- * 'Network.Wai.Response' Only
@@ -68,4 +68,4 @@ markdownOnlyHeaders :: RequestHeaders -> P.Pandoc -> Response
 markdownOnlyHeaders = markdownOnlyStatusHeaders status200
 
 markdownOnlyStatusHeaders :: Status -> RequestHeaders -> P.Pandoc -> Response
-markdownOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs . LT.encodeUtf8 . LT.pack $ P.writeMarkdown P.def i
+markdownOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . LT.pack . P.writeMarkdown P.def

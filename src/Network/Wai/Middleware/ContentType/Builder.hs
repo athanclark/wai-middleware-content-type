@@ -20,15 +20,21 @@ builder :: MonadIO m =>
         -> FileExtListenerT (MiddlewareT m) m ()
 builder e  = builderStatus e status200
 
+{-# INLINEABLE builder #-}
+
 builderWith :: MonadIO m =>
                (Response -> Response) -> FileExt -> RequestHeaders -> BU.Builder
             -> FileExtListenerT (MiddlewareT m) m ()
 builderWith f e = builderStatusWith f e status200
 
+{-# INLINEABLE builderWith #-}
+
 builderStatus :: MonadIO m =>
                  FileExt -> Status -> RequestHeaders -> BU.Builder
               -> FileExtListenerT (MiddlewareT m) m ()
 builderStatus = builderStatusWith id
+
+{-# INLINEABLE builderStatus #-}
 
 builderStatusWith :: MonadIO m =>
                      (Response -> Response) -> FileExt -> Status -> RequestHeaders -> BU.Builder
@@ -36,7 +42,9 @@ builderStatusWith :: MonadIO m =>
 builderStatusWith f e s hs i =
   let r = builderOnlyStatus s hs i in
   FileExtListenerT $ tell' $
-    HM.singleton e $ \_ _ respond -> respond (f r)
+    HM.singleton e (\_ _ respond -> respond $! f r)
+
+{-# INLINEABLE builderStatusWith #-}
 
 
 -- * 'Network.Wai.Response' Only
@@ -44,6 +52,10 @@ builderStatusWith f e s hs i =
 builderOnly :: RequestHeaders -> BU.Builder -> Response
 builderOnly = builderOnlyStatus status200
 
+{-# INLINEABLE builderOnly #-}
+
 -- | The exact same thing as @Network.Wai.responseBuilder@.
 builderOnlyStatus :: Status -> RequestHeaders -> BU.Builder -> Response
 builderOnlyStatus = responseBuilder
+
+{-# INLINEABLE builderOnlyStatus #-}

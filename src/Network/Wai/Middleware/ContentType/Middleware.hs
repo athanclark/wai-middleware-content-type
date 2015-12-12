@@ -11,3 +11,5 @@ middleware :: Monad m =>
            -> MiddlewareT m
            -> FileExtListenerT (MiddlewareT m) m ()
 middleware f m = tell' (HM.singleton f m)
+
+{-# INLINEABLE middleware #-}

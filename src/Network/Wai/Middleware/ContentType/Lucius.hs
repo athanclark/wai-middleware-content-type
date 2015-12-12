@@ -3,7 +3,7 @@
 module Network.Wai.Middleware.ContentType.Lucius where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.Wai.Middleware.ContentType.Builder
 import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
 import           Network.Wai.Trans
 
@@ -51,8 +51,8 @@ luciusStatusHeaders = luciusStatusHeadersWith id
 luciusStatusHeadersWith :: MonadIO m =>
                            (Response -> Response) -> Status -> RequestHeaders -> Css
                         -> FileExtListenerT (MiddlewareT m) m ()
-luciusStatusHeadersWith f s hs i =
-  bytestringStatusWith f Css s hs $ LT.encodeUtf8 $ renderCss i
+luciusStatusHeadersWith f s hs =
+  builderStatusWith f Css s hs . LT.encodeUtf8Builder . renderCss
 
 
 -- * 'Network.Wai.Response' Only
@@ -67,4 +67,4 @@ luciusOnlyHeaders :: RequestHeaders -> Css -> Response
 luciusOnlyHeaders = luciusOnlyStatusHeaders status200
 
 luciusOnlyStatusHeaders :: Status -> RequestHeaders -> Css -> Response
-luciusOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs $ LT.encodeUtf8 $ renderCss i
+luciusOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . renderCss

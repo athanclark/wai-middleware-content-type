@@ -4,7 +4,7 @@ module Network.Wai.Middleware.ContentType.Julius where
 
 import           Network.Wai.Middleware.ContentType.Types
 import qualified Network.Wai.Middleware.ContentType.Types as CT
-import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.Wai.Middleware.ContentType.Builder
 import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
 import           Network.Wai.Trans
 
@@ -53,8 +53,8 @@ juliusStatusHeaders = juliusStatusHeadersWith id
 juliusStatusHeadersWith :: MonadIO m =>
                            (Response -> Response) -> Status -> RequestHeaders -> Javascript
                         -> FileExtListenerT (MiddlewareT m) m ()
-juliusStatusHeadersWith f s hs i =
-  bytestringStatusWith f CT.JavaScript s hs $ LT.encodeUtf8 $ renderJavascript i
+juliusStatusHeadersWith f s hs =
+  builderStatusWith f CT.JavaScript s hs . LT.encodeUtf8Builder . renderJavascript
 
 
 -- * 'Network.Wai.Response' Only
@@ -69,4 +69,4 @@ juliusOnlyHeaders :: RequestHeaders -> Javascript -> Response
 juliusOnlyHeaders = juliusOnlyStatusHeaders status200
 
 juliusOnlyStatusHeaders :: Status -> RequestHeaders -> Javascript -> Response
-juliusOnlyStatusHeaders s hs i = bytestringOnlyStatus s hs $ LT.encodeUtf8 $ renderJavascript i
+juliusOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . renderJavascript
