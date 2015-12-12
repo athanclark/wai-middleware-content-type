@@ -108,8 +108,8 @@ lookupResponse :: ( MonadIO m
                     -> FileExtListenerT (MiddlewareT m) m ()
                     -> m (Maybe (MiddlewareT m))
 lookupResponse mAcceptBS mFe fexts = do
-  femap <- execFileExtListenerT fexts
-  return $ lookupFileExt femap
+  fes <- execFileExtListenerT fexts
+  pure (lookupFileExt fes)
   where
     lookupFileExt xs =
       let attempts = findFE $ maybe allFileExts possibleFileExts mAcceptBS

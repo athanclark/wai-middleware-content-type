@@ -61,13 +61,14 @@ tell' :: (Monoid w, MonadState w m) => w -> m ()
 tell' x = modify (<> x)
 
 -- | Supported file extensions
-data FileExt = Html
-             | Css
-             | JavaScript
-             | Json
-             | Text
-             | Markdown
-             | None
+data FileExt
+  = Html
+  | Css
+  | JavaScript
+  | Json
+  | Text
+  | Markdown
+  | None
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable FileExt
@@ -81,7 +82,7 @@ allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 getFileExt :: Request -> Maybe FileExt
 getFileExt req = case pathInfo req of
   [] -> Just None
-  xs -> toExt $ snd $ T.breakOn "." $ last xs
+  xs -> toExt . snd . T.breakOn "." $ last xs
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
