@@ -1,70 +1,40 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Network.Wai.Middleware.ContentType.Cassius where
 
-import           Network.Wai.Middleware.ContentType.Types as FE
-import           Network.Wai.Middleware.ContentType.Builder
-import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
-import           Network.Wai.Trans
+import           Network.Wai.Middleware.ContentType.Types as CT
+import           Network.Wai.Middleware.ContentType.Text
+import           Network.Wai                              (Response)
+import           Network.Wai.HTTP2                        (Body)
 
 import           Text.Cassius
-import qualified Data.Text.Lazy.Encoding                 as LT
-import           Control.Monad.IO.Class                  (MonadIO)
+import qualified Data.Text.Lazy.Encoding                  as LT
+import qualified Data.HashMap.Lazy                        as HM
 
 
 -- * Lifted Combinators
 
--- | Uses @cassius@ as the key in the map, and @"cassius/plain"@ as the content type.
-cassius :: MonadIO m => Css -> FileExtListenerT (MiddlewareT m) m ()
-cassius = cassiusStatusHeaders status200 [("Content-Type", "text/css")]
+cassiusResponse :: Monad m =>
+                   Css
+                -> FileExtListenerT Response m ()
+cassiusResponse i =
+  tell' $ HM.singleton CT.Css (cassiusOnlyResponse i)
 
-cassiusWith :: MonadIO m =>
-               (Response -> Response) -> Css
-            -> FileExtListenerT (MiddlewareT m) m ()
-cassiusWith f = cassiusStatusHeadersWith f status200 [("Content-Type", "text/css")]
+{-# INLINEABLE cassiusResponse #-}
 
-cassiusStatus :: MonadIO m =>
-                 Status -> Css
-              -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatus s = cassiusStatusHeaders s [("Content-Type", "text/css")]
+cassiusBody :: Monad m =>
+               Css
+            -> FileExtListenerT Body m ()
+cassiusBody i =
+  tell' $ HM.singleton CT.Css (cassiusOnlyBody i)
 
-cassiusStatusWith :: MonadIO m =>
-                     (Response -> Response) -> Status -> Css
-                  -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatusWith f s = cassiusStatusHeadersWith f s [("Content-Type", "text/css")]
-
-cassiusHeaders :: MonadIO m =>
-                  RequestHeaders -> Css
-               -> FileExtListenerT (MiddlewareT m) m ()
-cassiusHeaders = cassiusStatusHeaders status200
-
-cassiusHeadersWith :: MonadIO m =>
-                      (Response -> Response) -> RequestHeaders -> Css
-                   -> FileExtListenerT (MiddlewareT m) m ()
-cassiusHeadersWith f = cassiusStatusHeadersWith f status200
-
-cassiusStatusHeaders :: MonadIO m =>
-                        Status -> RequestHeaders -> Css
-                     -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatusHeaders = cassiusStatusHeadersWith id
-
-cassiusStatusHeadersWith :: MonadIO m =>
-                            (Response -> Response) -> Status -> RequestHeaders -> Css
-                         -> FileExtListenerT (MiddlewareT m) m ()
-cassiusStatusHeadersWith f s hs =
-  builderStatusWith f Css s hs . LT.encodeUtf8Builder . renderCss
+{-# INLINEABLE cassiusBody #-}
 
 
--- * 'Network.Wai.Response' Only
+-- * Data Only
 
-cassiusOnly :: Css -> Response
-cassiusOnly = cassiusOnlyStatusHeaders status200 [("Content-Type", "text/css")]
+cassiusOnlyResponse :: Css -> Response
+cassiusOnlyResponse =
+  textOnlyResponse . renderCss
 
-cassiusOnlyStatus :: Status -> Css -> Response
-cassiusOnlyStatus s = cassiusOnlyStatusHeaders s [("Content-Type", "text/css")]
-
-cassiusOnlyHeaders :: RequestHeaders -> Css -> Response
-cassiusOnlyHeaders = cassiusOnlyStatusHeaders status200
-
-cassiusOnlyStatusHeaders :: Status -> RequestHeaders -> Css -> Response
-cassiusOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . renderCss
+cassiusOnlyBody :: Css -> Body
+cassiusOnlyBody =
+  textOnlyBody . renderCss

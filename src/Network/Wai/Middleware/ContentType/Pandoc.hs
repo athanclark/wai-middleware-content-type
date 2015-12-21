@@ -1,71 +1,37 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Network.Wai.Middleware.ContentType.Pandoc where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.Wai.Middleware.ContentType.Builder
-import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
-import           Network.Wai.Trans
+import           Network.Wai.Middleware.ContentType.Text
+import           Network.Wai                              (Response)
+import           Network.Wai.HTTP2                        (Body)
 
 import qualified Data.Text.Lazy                           as LT
-import qualified Data.Text.Lazy.Encoding                  as LT
 import qualified Text.Pandoc                              as P
-import           Control.Monad.Trans
+import qualified Data.HashMap.Lazy                        as HM
 
 
 -- * Lifted Combinators
 
--- | Uses the @Html@ key in the map, and @"text/html"@ as the content type.
-markdown :: MonadIO m => P.Pandoc -> FileExtListenerT (MiddlewareT m) m ()
-markdown = markdownStatusHeaders status200 [("Content-Type", "text/markdown")]
+markdownResponse :: Monad m => P.Pandoc -> FileExtListenerT Response m ()
+markdownResponse i =
+  tell' $ HM.singleton Markdown (markdownOnlyResponse i)
 
-markdownWith :: MonadIO m =>
-             (Response -> Response) -> P.Pandoc
-          -> FileExtListenerT (MiddlewareT m) m ()
-markdownWith f = markdownStatusHeadersWith f status200 [("Content-Type", "text/markdown")]
+{-# INLINEABLE markdownResponse #-}
 
-markdownStatus :: MonadIO m =>
-               Status -> P.Pandoc
-            -> FileExtListenerT (MiddlewareT m) m ()
-markdownStatus s = markdownStatusHeaders s [("Content-Type", "text/markdown")]
+markdownBody :: Monad m => P.Pandoc -> FileExtListenerT Body m ()
+markdownBody i =
+  tell' $ HM.singleton Markdown (markdownOnlyBody i)
 
-markdownStatusWith :: MonadIO m =>
-                   (Response -> Response) -> Status -> P.Pandoc
-                -> FileExtListenerT (MiddlewareT m) m ()
-markdownStatusWith f s = markdownStatusHeadersWith f s [("Content-Type", "text/markdown")]
-
-markdownHeaders :: MonadIO m =>
-                RequestHeaders -> P.Pandoc
-             -> FileExtListenerT (MiddlewareT m) m ()
-markdownHeaders = markdownStatusHeaders status200
-
-markdownHeadersWith :: MonadIO m =>
-                    (Response -> Response) -> RequestHeaders -> P.Pandoc
-                 -> FileExtListenerT (MiddlewareT m) m ()
-markdownHeadersWith f = markdownStatusHeadersWith f status200
-
-markdownStatusHeaders :: MonadIO m =>
-                      Status -> RequestHeaders -> P.Pandoc
-                   -> FileExtListenerT (MiddlewareT m) m ()
-markdownStatusHeaders = markdownStatusHeadersWith id
-
-markdownStatusHeadersWith :: MonadIO m =>
-                          (Response -> Response) -> Status -> RequestHeaders -> P.Pandoc
-                       -> FileExtListenerT (MiddlewareT m) m ()
-markdownStatusHeadersWith f s hs =
-  builderStatusWith f Markdown s hs . LT.encodeUtf8Builder . LT.pack . P.writeMarkdown P.def
+{-# INLINEABLE markdownBody #-}
 
 
--- * 'Network.Wai.Response' Only
+-- * Data Only
 
-markdownOnly :: P.Pandoc -> Response
-markdownOnly = markdownOnlyStatusHeaders status200 [("Content-Type", "text/markdown")]
+markdownOnlyResponse :: P.Pandoc -> Response
+markdownOnlyResponse =
+  textOnlyResponse . LT.pack . P.writeMarkdown P.def
 
-markdownOnlyStatus :: Status -> P.Pandoc -> Response
-markdownOnlyStatus s = markdownOnlyStatusHeaders s [("Content-Type", "text/markdown")]
+markdownOnlyBody :: P.Pandoc -> Body
+markdownOnlyBody =
+  textOnlyBody . LT.pack . P.writeMarkdown P.def
 
-markdownOnlyHeaders :: RequestHeaders -> P.Pandoc -> Response
-markdownOnlyHeaders = markdownOnlyStatusHeaders status200
-
-markdownOnlyStatusHeaders :: Status -> RequestHeaders -> P.Pandoc -> Response
-markdownOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . LT.pack . P.writeMarkdown P.def

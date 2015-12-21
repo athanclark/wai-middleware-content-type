@@ -1,63 +1,41 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Network.Wai.Middleware.ContentType.ByteString where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.Wai.Middleware.ContentType.Middleware
-import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
-import           Network.Wai.Trans
-import qualified Network.Wai.Util                        as U
+import           Network.HTTP.Types                      (status200)
+import           Network.Wai                             (Response, responseLBS)
+import           Network.Wai.HTTP2                       (Body, streamBuilder)
 
-import qualified Data.ByteString.Lazy                    as B
-import           Control.Monad.Trans (lift)
-import           Control.Monad.IO.Class
+import qualified Data.ByteString.Lazy                    as LBS
+import qualified Blaze.ByteString.Builder.ByteString     as BU
+import qualified Data.HashMap.Lazy                       as HM
 
 
 -- * Lifted Combinators
 
--- | @ByteString@ is ambiguous - we need to know what @RequestHeaders@ and @FileExt@ should be associated.
-bytestring :: MonadIO m => FileExt -> RequestHeaders -> B.ByteString
-           -> FileExtListenerT (MiddlewareT m) m ()
-bytestring e = bytestringStatus e status200
+bytestringResponse :: Monad m =>
+                      FileExt
+                   -> LBS.ByteString
+                   -> FileExtListenerT Response m ()
+bytestringResponse fe i =
+  tell' $ HM.singleton fe (bytestringOnlyResponse i)
 
-{-# INLINEABLE bytestring #-}
+{-# INLINEABLE bytestringResponse #-}
 
-bytestringWith :: MonadIO m => (Response -> Response) -> FileExt -> RequestHeaders -> B.ByteString
-               -> FileExtListenerT (MiddlewareT m) m ()
-bytestringWith f e = bytestringStatusWith f e status200
+bytestringBody :: Monad m =>
+                  FileExt
+               -> LBS.ByteString
+               -> FileExtListenerT Body m ()
+bytestringBody fe i =
+  tell' $ HM.singleton fe (bytestringOnlyBody i)
 
-{-# INLINEABLE bytestringWith #-}
-
-bytestringStatus :: MonadIO m => FileExt -> Status -> RequestHeaders -> B.ByteString
-                 -> FileExtListenerT (MiddlewareT m) m ()
-bytestringStatus = bytestringStatusWith id
-
-{-# INLINEABLE bytestringStatus #-}
-
-
-bytestringStatusWith :: MonadIO m =>
-                        (Response -> Response)
-                     -> FileExt
-                     -> Status
-                     -> RequestHeaders
-                     -> B.ByteString
-                     -> FileExtListenerT (MiddlewareT m) m ()
-bytestringStatusWith f fe s hs i = do
-  r <- lift $ U.bytestring s hs i
-  middleware fe (\_ _ respond -> respond (f r))
-
-{-# INLINEABLE bytestringStatusWith #-}
+{-# INLINEABLE bytestringBody #-}
 
 
--- * 'Network.Wai.Response' Only
-
-bytestringOnly :: RequestHeaders -> B.ByteString -> Response
-bytestringOnly = bytestringOnlyStatus status200
-
-{-# INLINEABLE bytestringOnly #-}
+-- * Data Only
 
 -- | The exact same thing as @Network.Wai.responseLBS@.
-bytestringOnlyStatus :: Status -> RequestHeaders -> B.ByteString -> Response
-bytestringOnlyStatus = responseLBS
+bytestringOnlyResponse :: LBS.ByteString -> Response
+bytestringOnlyResponse = responseLBS status200 []
 
-{-# INLINEABLE bytestringOnlyStatus #-}
+bytestringOnlyBody :: LBS.ByteString -> Body
+bytestringOnlyBody = streamBuilder . BU.fromLazyByteString

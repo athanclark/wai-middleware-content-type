@@ -7,6 +7,7 @@ module Network.Wai.Middleware.ContentTypeSpec where
 
 import Network.Wai.Middleware.ContentType
 import Network.Wai.Trans
+import Network.Wai.Internal
 import Network.HTTP.Types
 import qualified Data.Text      as T
 import qualified Data.Text.Lazy as LT
@@ -157,16 +158,24 @@ mockServer = do
         406
 
 app :: Application
-app = fileExtsToMiddleware allExamples $ \_ resp ->
-  resp $ textOnlyStatus status406 "Something went wrong"
+app req respond = do
+  xs <- execFileExtListenerT allExamples
+  let mAcceptHeader = lookup "Accept" (requestHeaders req)
+      mFileExt      = getFileExt (pathInfo req)
+  respond $
+    case lookupFileExt mAcceptHeader mFileExt xs of
+      Nothing -> let (ResponseBuilder s h r) = textOnlyResponse "Something went wrong"
+                 in (ResponseBuilder status406 [] r)
+      Just r  -> r
 
-allExamples :: FileExtListenerT Middleware IO ()
+allExamples :: FileExtListenerT Response IO ()
 allExamples = do
-  text "Text!"
-  json ("Json!" :: T.Text)
-  lucid (L.toHtmlRaw ("Html!" :: T.Text))
-  cassius ([SL.lucius|body {background: #fff;}|] undefined)
-  julius  ([SJ.julius|function foo () {return;}|] undefined)
-  markdown $ case P.readMarkdown P.def "*Pandoc*!" of
-               Left e -> error $ show e
-               Right p -> p
+  textResponse "Text!"
+  jsonResponse ("Json!" :: T.Text)
+  lucidResponse (L.toHtmlRaw ("Html!" :: T.Text))
+  cassiusResponse ([SL.lucius|body {background: #fff;}|] undefined)
+  juliusResponse  ([SJ.julius|function foo () {return;}|] undefined)
+  markdownResponse $
+    case P.readMarkdown P.def "*Pandoc*!" of
+      Left e -> error $ show e
+      Right p -> p

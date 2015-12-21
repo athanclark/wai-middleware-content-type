@@ -34,7 +34,6 @@ module Network.Wai.Middleware.ContentType.Types
     tell'
   ) where
 
-import           Network.Wai.Trans
 import qualified Data.Text              as T
 import           Data.HashMap.Lazy
 import           Data.Monoid

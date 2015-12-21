@@ -1,72 +1,39 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Network.Wai.Middleware.ContentType.Julius where
 
-import           Network.Wai.Middleware.ContentType.Types
-import qualified Network.Wai.Middleware.ContentType.Types as CT
-import           Network.Wai.Middleware.ContentType.Builder
-import           Network.HTTP.Types                      (RequestHeaders, Status, status200)
-import           Network.Wai.Trans
+import           Network.Wai.Middleware.ContentType.Types as CT
+import           Network.Wai.Middleware.ContentType.Text
+import           Network.Wai                              (Response)
+import           Network.Wai.HTTP2                        (Body)
 
 import           Text.Julius
-import qualified Data.Text.Lazy.Encoding                 as LT
-import           Control.Monad.IO.Class                  (MonadIO)
+import qualified Data.HashMap.Lazy                        as HM
 
 
 -- * Lifted Combinators
 
--- | Uses @julius@ as the key in the map, and @"application/javascript"@ as the content type.
-julius :: MonadIO m =>
-          Javascript -> FileExtListenerT (MiddlewareT m) m ()
-julius = juliusStatusHeaders status200 [("Content-Type", "application/javascript")]
+juliusResponse :: Monad m =>
+                  Javascript
+               -> FileExtListenerT Response m ()
+juliusResponse i =
+  tell' $ HM.singleton CT.JavaScript (juliusOnlyResponse i)
 
-juliusWith :: MonadIO m =>
-              (Response -> Response) -> Javascript
-           -> FileExtListenerT (MiddlewareT m) m ()
-juliusWith f = juliusStatusHeadersWith f status200 [("Content-Type", "application/javascript")]
+{-# INLINEABLE juliusResponse #-}
 
-juliusStatus :: MonadIO m =>
-                Status -> Javascript
-             -> FileExtListenerT (MiddlewareT m) m ()
-juliusStatus s = juliusStatusHeaders s [("Content-Type", "application/javascript")]
+juliusBody :: Monad m =>
+              Javascript
+           -> FileExtListenerT Body m ()
+juliusBody i =
+  tell' $ HM.singleton CT.JavaScript (juliusOnlyBody i)
 
-juliusStatusWith :: MonadIO m =>
-                    (Response -> Response) -> Status -> Javascript
-                 -> FileExtListenerT (MiddlewareT m) m ()
-juliusStatusWith f s = juliusStatusHeadersWith f s [("Content-Type", "application/javascript")]
-
-juliusHeaders :: MonadIO m =>
-                 RequestHeaders -> Javascript
-              -> FileExtListenerT (MiddlewareT m) m ()
-juliusHeaders = juliusStatusHeaders status200
-
-juliusHeadersWith :: MonadIO m =>
-                     (Response -> Response) -> RequestHeaders -> Javascript
-                  -> FileExtListenerT (MiddlewareT m) m ()
-juliusHeadersWith f = juliusStatusHeadersWith f status200
-
-juliusStatusHeaders :: MonadIO m =>
-                       Status -> RequestHeaders -> Javascript
-                    -> FileExtListenerT (MiddlewareT m) m ()
-juliusStatusHeaders = juliusStatusHeadersWith id
-
-juliusStatusHeadersWith :: MonadIO m =>
-                           (Response -> Response) -> Status -> RequestHeaders -> Javascript
-                        -> FileExtListenerT (MiddlewareT m) m ()
-juliusStatusHeadersWith f s hs =
-  builderStatusWith f CT.JavaScript s hs . LT.encodeUtf8Builder . renderJavascript
+{-# INLINEABLE juliusBody #-}
 
 
--- * 'Network.Wai.Response' Only
+-- * Data Only
 
-juliusOnly :: Javascript -> Response
-juliusOnly = juliusOnlyStatusHeaders status200 [("Content-Type", "application/javascript")]
+juliusOnlyResponse :: Javascript -> Response
+juliusOnlyResponse =
+  textOnlyResponse . renderJavascript
 
-juliusOnlyStatus :: Status -> Javascript -> Response
-juliusOnlyStatus s = juliusOnlyStatusHeaders s [("Content-Type", "application/javascript")]
-
-juliusOnlyHeaders :: RequestHeaders -> Javascript -> Response
-juliusOnlyHeaders = juliusOnlyStatusHeaders status200
-
-juliusOnlyStatusHeaders :: Status -> RequestHeaders -> Javascript -> Response
-juliusOnlyStatusHeaders s hs = builderOnlyStatus s hs . LT.encodeUtf8Builder . renderJavascript
+juliusOnlyBody :: Javascript -> Body
+juliusOnlyBody =
+  textOnlyBody . renderJavascript
