@@ -14,11 +14,8 @@ Portability : GHC
 -}
 
 module Network.Wai.Middleware.ContentType
-  ( -- * Utilities
-    lookupFileExt
-  , possibleFileExts
-  , invalidEncoding
-  , AcceptHeader
+  ( lookupFileExt
+
   , -- * Re-Exports
     module Network.Wai.Middleware.ContentType.Types
   , module Network.Wai.Middleware.ContentType.Blaze
@@ -33,7 +30,6 @@ module Network.Wai.Middleware.ContentType
   , module Network.Wai.Middleware.ContentType.Pandoc
   ) where
 
-import Network.HTTP.Media (mapAccept)
 import Network.Wai.Middleware.ContentType.Types hiding (tell')
 import Network.Wai.Middleware.ContentType.Blaze
 import Network.Wai.Middleware.ContentType.ByteString
@@ -48,14 +44,9 @@ import Network.Wai.Middleware.ContentType.Pandoc
 
 import qualified Network.Wai.Middleware.ContentType.Types as CT
 
-import qualified Data.ByteString   as BS
 import qualified Data.HashMap.Lazy as HM
-import Data.Maybe (fromMaybe, catMaybes)
 import Data.Monoid
 import Control.Monad
-
-
-type AcceptHeader = BS.ByteString
 
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
@@ -73,39 +64,3 @@ lookupFileExt mAcceptBS mFe fexts =
         Nothing -> xs
         Just fe -> fe <$ guard (fe `elem` xs)
 
-
--- | Takes an @Accept@ header and returns the other
--- file types handleable, in order of prescedence.
-possibleFileExts :: AcceptHeader -> [FileExt]
-possibleFileExts accept = if not (null wildcard) then wildcard else computed
-  where
-    computed :: [FileExt]
-    computed = concat $
-      catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
-                            , ("application/javascript" :: BS.ByteString, [JavaScript,Json])
-                            ] accept
-                , mapAccept [ ("text/html" :: BS.ByteString, [Html])
-                            ] accept
-                , mapAccept [ ("text/plain" :: BS.ByteString, [Text, Markdown])
-                            ] accept
-                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown])
-                            ] accept
-                , mapAccept [ ("text/css" :: BS.ByteString, [Css])
-                            ] accept
-                ]
-
-    wildcard :: [FileExt]
-    wildcard = fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
-                                        ] accept
-
-{-# INLINEABLE possibleFileExts #-}
-
--- | Use this combinator as the last one, as a "catch-all":
---
---   > myApp = do
---   >   text "foo"
---   >   invalidEncoding myErrorHandler -- handles all except text/plain
-invalidEncoding :: Monad m => r -> FileExtListenerT r m ()
-invalidEncoding r = mapM_ (\t -> CT.tell' $ HM.singleton t r) allFileExts
-
-{-# INLINEABLE invalidEncoding #-}

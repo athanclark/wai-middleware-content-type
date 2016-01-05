@@ -32,13 +32,19 @@ module Network.Wai.Middleware.ContentType.Types
   , execFileExtListenerT
   , -- * Utilities
     tell'
+  , AcceptHeader
+  , possibleFileExts
+  , invalidEncoding
   ) where
 
 import qualified Data.Text              as T
-import           Data.HashMap.Lazy
+import           Data.HashMap.Lazy hiding (null)
+import qualified Data.HashMap.Lazy as HM
 import           Data.Monoid
+import           Data.Maybe (fromMaybe, catMaybes)
 import           Data.Url
 import           Data.Hashable
+import qualified Data.ByteString        as BS
 import           Control.Applicative
 import           Control.Monad.Base
 import           Control.Monad.Catch
@@ -53,6 +59,7 @@ import           Control.Monad.Logger
 import           Control.Monad.Morph
 
 import           GHC.Generics
+import           Network.HTTP.Media (mapAccept)
 
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
@@ -141,4 +148,47 @@ instance ( MonadBaseControl b m
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
 
+
+
+-- * Headers
+
+type AcceptHeader = BS.ByteString
+
+
 {-# INLINEABLE execFileExtListenerT #-}
+
+-- | Takes an @Accept@ header and returns the other
+-- file types handleable, in order of prescedence.
+possibleFileExts :: AcceptHeader -> [FileExt]
+possibleFileExts accept = if not (null wildcard) then wildcard else computed
+  where
+    computed :: [FileExt]
+    computed = concat $
+      catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
+                            , ("application/javascript" :: BS.ByteString, [JavaScript,Json])
+                            ] accept
+                , mapAccept [ ("text/html" :: BS.ByteString, [Html])
+                            ] accept
+                , mapAccept [ ("text/plain" :: BS.ByteString, [Text, Markdown])
+                            ] accept
+                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown])
+                            ] accept
+                , mapAccept [ ("text/css" :: BS.ByteString, [Css])
+                            ] accept
+                ]
+
+    wildcard :: [FileExt]
+    wildcard = fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
+                                        ] accept
+
+{-# INLINEABLE possibleFileExts #-}
+
+-- | Use this combinator as the last one, as a "catch-all":
+--
+--   > myApp = do
+--   >   text "foo"
+--   >   invalidEncoding myErrorHandler -- handles all except text/plain
+invalidEncoding :: Monad m => r -> FileExtListenerT r m ()
+invalidEncoding r = mapM_ (\t -> tell' $ HM.singleton t r) allFileExts
+
+{-# INLINEABLE invalidEncoding #-}
