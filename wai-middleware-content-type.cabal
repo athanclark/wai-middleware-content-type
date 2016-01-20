@@ -1,5 +1,5 @@
 Name:                   wai-middleware-content-type
-Version:                0.2.0
+Version:                0.2.1
 Author:                 Athan Clark <athan.clark@gmail.com>
 Maintainer:             Athan Clark <athan.clark@gmail.com>
 License:                BSD3
@@ -55,7 +55,7 @@ Library
                       , transformers-base
                       , unordered-containers
                       , urlpath >= 5.0.0.1
-                      , wai
+                      , wai >= 3.2
 
 Test-Suite test
   Type:                 exitcode-stdio-1.0
@@ -105,7 +105,7 @@ Test-Suite test
                       , transformers-base
                       , urlpath
                       , unordered-containers
-                      , wai
+                      , wai >= 3.0.4 && < 3.2
                       , wai-transformers
                       , warp
 

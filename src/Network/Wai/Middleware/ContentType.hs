@@ -42,8 +42,6 @@ import Network.Wai.Middleware.ContentType.Lucius
 import Network.Wai.Middleware.ContentType.Text
 import Network.Wai.Middleware.ContentType.Pandoc
 
-import qualified Network.Wai.Middleware.ContentType.Types as CT
-
 import qualified Data.HashMap.Lazy as HM
 import Data.Monoid
 import Control.Monad
