@@ -15,22 +15,26 @@ with `Html`-compatible requests with our toolset:
 
 ```haskell
 import Network.Wai.Middleware.ContentType
-import Network.Wai.Middleware.ContentType.Middleware (middleware)
 import Network.Wai.Trans
 
 
 myMiddleware :: MiddleareT (ReaderT Env m)
 
-contentTypeRoutes :: MonadIO m => FileExtListenerT (MiddlewareT m) m ()
+contentTypeRoutes :: Monad m => FileExtListenerT Response m ()
 contentTypeRoutes = do
   blaze myBlazeResponse
   cassius myCassiusResponse
   text myTextResponse
-  middleware Json myMiddleware
 
 
-contentMiddleware :: MonadIO m => MiddlewareT m
-contentMiddleware = fileExtsToMiddleware contentTypeRoutes
+contentMiddleware :: Monad m => MiddlewareT m
+contentMiddleware app req respond =
+  map <- execFileExtListenerT contentTypeRoutes
+  let mAcceptHeader = lookup "Accept" (requestHeaders req)
+      mFileExt = getFileExt (pathInfo req)
+  case lookupFileExt mAcceptHeader mFileExt map of
+    Nothing -> app req respond
+    Just r  -> respond r
 ```
 
 Which you can then decompose into a `Middleware` and use in the rest of your Wai stack.

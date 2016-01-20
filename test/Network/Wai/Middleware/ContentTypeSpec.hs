@@ -164,18 +164,18 @@ app req respond = do
       mFileExt      = getFileExt (pathInfo req)
   respond $
     case lookupFileExt mAcceptHeader mFileExt xs of
-      Nothing -> let (ResponseBuilder s h r) = textOnlyResponse "Something went wrong"
+      Nothing -> let (ResponseBuilder s h r) = textOnly "Something went wrong"
                  in (ResponseBuilder status406 [] r)
       Just r  -> r
 
 allExamples :: FileExtListenerT Response IO ()
 allExamples = do
-  textResponse "Text!"
-  jsonResponse ("Json!" :: T.Text)
-  lucidResponse (L.toHtmlRaw ("Html!" :: T.Text))
-  cassiusResponse ([SL.lucius|body {background: #fff;}|] undefined)
-  juliusResponse  ([SJ.julius|function foo () {return;}|] undefined)
-  markdownResponse $
+  text "Text!"
+  json ("Json!" :: T.Text)
+  lucid (L.toHtmlRaw ("Html!" :: T.Text))
+  cassius ([SL.lucius|body {background: #fff;}|] undefined)
+  julius  ([SJ.julius|function foo () {return;}|] undefined)
+  markdown $
     case P.readMarkdown P.def "*Pandoc*!" of
       Left e -> error $ show e
       Right p -> p
