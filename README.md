@@ -37,12 +37,6 @@ contentMiddleware app req respond =
     Just r  -> respond r
 ```
 
-Which you can then decompose into a `Middleware` and use in the rest of your Wai stack.
-
-There is a small example under `/examples/Example.hs`, for example. Also, check
-out the [docs on hackage](https://hackage.haskell.org/package/wai-middleware-content-type).
-
----
 
 This library was designed for use with [nested-routes](https://hackage.haskell.org/package/nested-routes),
 but it's all good if you want to use it separately.
