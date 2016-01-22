@@ -158,18 +158,12 @@ mockServer = do
         406
 
 app :: Application
-app req respond = do
-  xs <- execFileExtListenerT allExamples
-  let mAcceptHeader = lookup "Accept" (requestHeaders req)
-      mFileExt      = getFileExt (pathInfo req)
-  respond $
-    case lookupFileExt mAcceptHeader mFileExt xs of
-      Nothing -> let (ResponseBuilder s h r) = textOnly "Something went wrong"
-                 in (ResponseBuilder status406 [] r)
-      Just r  -> r
+app =
+  fileExtsToMiddleware allExamples $
+  (\req respond -> respond (textOnly "Something went wrong" status406 []))
 
 allExamples :: FileExtListenerT Response IO ()
-allExamples = do
+allExamples = mapResponse (\f -> f status200 []) $ do
   text "Text!"
   json ("Json!" :: T.Text)
   lucid (L.toHtmlRaw ("Html!" :: T.Text))

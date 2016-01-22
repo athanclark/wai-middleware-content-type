@@ -15,6 +15,7 @@ Portability : GHC
 
 module Network.Wai.Middleware.ContentType
   ( lookupFileExt
+  , fileExtsToMiddleware
 
   , -- * Re-Exports
     module Network.Wai.Middleware.ContentType.Types
@@ -42,6 +43,8 @@ import Network.Wai.Middleware.ContentType.Lucius
 import Network.Wai.Middleware.ContentType.Text
 import Network.Wai.Middleware.ContentType.Pandoc
 
+import Network.Wai.Trans (Response, MiddlewareT, requestHeaders,
+                         pathInfo)
 import qualified Data.HashMap.Lazy as HM
 import Data.Monoid
 import Control.Monad
@@ -62,3 +65,11 @@ lookupFileExt mAcceptBS mFe fexts =
         Nothing -> xs
         Just fe -> fe <$ guard (fe `elem` xs)
 
+fileExtsToMiddleware :: Monad m => FileExtListenerT Response m a -> MiddlewareT m
+fileExtsToMiddleware xs app req respond = do
+  map <- execFileExtListenerT xs
+  let mAcceptHeader = lookup "Accept" (requestHeaders req)
+      mFileExt      = getFileExt (pathInfo req)
+  case lookupFileExt mAcceptHeader mFileExt map of
+    Nothing -> app req respond
+    Just r  -> respond r

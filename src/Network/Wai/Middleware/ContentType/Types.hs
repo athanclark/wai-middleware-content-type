@@ -30,6 +30,7 @@ module Network.Wai.Middleware.ContentType.Types
   , FileExtMap
   , FileExtListenerT (..)
   , execFileExtListenerT
+  , mapResponse
   , -- * Utilities
     tell'
   , AcceptHeader
@@ -59,6 +60,8 @@ import           Control.Monad.Logger
 import           Control.Monad.Morph
 
 import           GHC.Generics
+import           Network.HTTP.Types (Status, ResponseHeaders)
+import           Network.Wai.Trans (Response)
 import           Network.HTTP.Media (mapAccept)
 
 
@@ -114,6 +117,8 @@ toExt x | x `elem` htmls       = Just Html
 
 {-# INLINEABLE toExt #-}
 
+
+
 type FileExtMap a = HashMap FileExt a
 
 -- | The monad for our DSL - when using the combinators, our result will be this
@@ -144,6 +149,18 @@ instance ( MonadBaseControl b m
   liftBaseWith = defaultLiftBaseWith
   restoreM     = defaultRestoreM
 
+mapResponse :: Monad m =>
+               ((Status -> ResponseHeaders -> Response) -> Response)
+            -> FileExtListenerT (Status -> ResponseHeaders -> Response) m a
+            -> FileExtListenerT Response m a
+mapResponse f (FileExtListenerT xs) =
+  FileExtListenerT $ mapState (HM.map f) (HM.map (const . const)) xs
+  where
+    mapState to from xs = do
+      i <- get
+      (x,s) <- lift (runStateT xs (from i))
+      put (to s)
+      pure x
 
 execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty

@@ -2,10 +2,10 @@ module Network.Wai.Middleware.ContentType.Cassius where
 
 import           Network.Wai.Middleware.ContentType.Types as CT
 import           Network.Wai.Middleware.ContentType.Text
+import           Network.HTTP.Types                       (Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
 import           Text.Cassius
-import qualified Data.Text.Lazy.Encoding                  as LT
 import qualified Data.HashMap.Lazy                        as HM
 
 
@@ -13,7 +13,7 @@ import qualified Data.HashMap.Lazy                        as HM
 
 cassius :: Monad m =>
            Css
-        -> FileExtListenerT Response m ()
+        -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 cassius i =
   tell' $ HM.singleton CT.Css (cassiusOnly i)
 
@@ -22,6 +22,6 @@ cassius i =
 
 -- * Data Only
 
-cassiusOnly :: Css -> Response
-cassiusOnly =
-  textOnly . renderCss
+cassiusOnly :: Css -> Status -> ResponseHeaders -> Response
+cassiusOnly c =
+  textOnly (renderCss c)

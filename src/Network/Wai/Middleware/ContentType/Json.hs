@@ -2,6 +2,7 @@ module Network.Wai.Middleware.ContentType.Json where
 
 import           Network.Wai.Middleware.ContentType.Types
 import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.HTTP.Types                      (Status, ResponseHeaders)
 import           Network.Wai                             (Response)
 
 import qualified Data.Aeson                              as A
@@ -13,7 +14,7 @@ import qualified Data.Aeson                              as A
 json :: ( A.ToJSON j
         , Monad m
         ) => j
-          -> FileExtListenerT Response m ()
+          -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 json =
   bytestring Json . A.encode
 
@@ -21,8 +22,8 @@ json =
 
 -- * Data Only
 
-jsonOnly :: A.ToJSON j => j -> Response
-jsonOnly =
-  bytestringOnly . A.encode
+jsonOnly :: A.ToJSON j => j -> Status -> ResponseHeaders -> Response
+jsonOnly j =
+  bytestringOnly (A.encode j)
 
 {-# INLINEABLE jsonOnly #-}

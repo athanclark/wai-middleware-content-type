@@ -1,7 +1,7 @@
 module Network.Wai.Middleware.ContentType.Blaze where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.HTTP.Types                      (status200)
+import           Network.HTTP.Types                      (Status, ResponseHeaders)
 import           Network.Wai                             (Response, responseBuilder)
 
 import qualified Text.Blaze.Html                         as H
@@ -13,7 +13,7 @@ import qualified Data.HashMap.Lazy                       as HM
 
 blaze :: Monad m =>
          H.Html
-      -> FileExtListenerT Response m ()
+      -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 blaze i =
   tell' $ HM.singleton Html (blazeOnly i)
 
@@ -21,6 +21,6 @@ blaze i =
 
 -- * Data Only
 
-blazeOnly :: H.Html -> Response
-blazeOnly = responseBuilder status200 [] . H.renderHtmlBuilder
+blazeOnly :: H.Html -> Status -> ResponseHeaders -> Response
+blazeOnly h s hs = responseBuilder s hs (H.renderHtmlBuilder h)
 

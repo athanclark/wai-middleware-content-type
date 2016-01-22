@@ -1,7 +1,7 @@
 module Network.Wai.Middleware.ContentType.Lucid where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.HTTP.Types                      (status200)
+import           Network.HTTP.Types                      (Status, ResponseHeaders)
 import           Network.Wai                             (Response, responseBuilder)
 
 import qualified Lucid.Base                              as L
@@ -13,7 +13,7 @@ import qualified Data.HashMap.Lazy                       as HM
 
 lucid :: Monad m =>
          L.HtmlT m ()
-      -> FileExtListenerT Response m ()
+      -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 lucid i = do
   i' <- lift (lucidOnly i)
   tell' (HM.singleton Html i')
@@ -23,8 +23,8 @@ lucid i = do
 
 -- * Data Only
 
-lucidOnly :: Monad m => L.HtmlT m () -> m Response
+lucidOnly :: Monad m => L.HtmlT m () -> m (Status -> ResponseHeaders -> Response)
 lucidOnly i =
-  responseBuilder status200 [] <$> L.execHtmlT i
+  (\b s hs -> responseBuilder s hs b) <$> L.execHtmlT i
 
 {-# INLINEABLE lucidOnly #-}

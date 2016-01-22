@@ -20,7 +20,8 @@ import Network.Wai.Trans
 
 myMiddleware :: MiddleareT (ReaderT Env m)
 
-contentTypeRoutes :: Monad m => FileExtListenerT Response m ()
+contentTypeRoutes :: Monad m =>
+                     FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 contentTypeRoutes = do
   blaze myBlazeResponse
   cassius myCassiusResponse
@@ -34,7 +35,7 @@ contentMiddleware app req respond =
       mFileExt = getFileExt (pathInfo req)
   case lookupFileExt mAcceptHeader mFileExt map of
     Nothing -> app req respond
-    Just r  -> respond r
+    Just r  -> respond (r status200 [])
 ```
 
 

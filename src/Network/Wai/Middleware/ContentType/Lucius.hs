@@ -2,6 +2,7 @@ module Network.Wai.Middleware.ContentType.Lucius where
 
 import           Network.Wai.Middleware.ContentType.Types as CT
 import           Network.Wai.Middleware.ContentType.Text
+import           Network.HTTP.Types                       (Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
 import           Text.Lucius
@@ -10,7 +11,9 @@ import qualified Data.HashMap.Lazy                        as HM
 
 -- * Lifted Combinators
 
-lucius :: Monad m => Css -> FileExtListenerT Response m ()
+lucius :: Monad m =>
+          Css
+       -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
 lucius i =
   tell' $ HM.singleton CT.Css (luciusOnly i)
 
@@ -19,6 +22,6 @@ lucius i =
 
 -- * Data Only
 
-luciusOnly :: Css -> Response
-luciusOnly =
-  textOnly . renderCss
+luciusOnly :: Css -> Status -> ResponseHeaders -> Response
+luciusOnly c =
+  textOnly (renderCss c)
