@@ -18,7 +18,7 @@ import Network.Wai.Middleware.ContentType
 import Network.Wai.Trans
 
 
-myMiddleware :: MiddleareT (ReaderT Env m)
+myMiddleware :: MiddlewareT (ReaderT Env m)
 
 contentTypeRoutes :: Monad m =>
                      FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
@@ -30,12 +30,8 @@ contentTypeRoutes = do
 
 contentMiddleware :: Monad m => MiddlewareT m
 contentMiddleware app req respond =
-  map <- execFileExtListenerT contentTypeRoutes
-  let mAcceptHeader = lookup "Accept" (requestHeaders req)
-      mFileExt = getFileExt (pathInfo req)
-  case lookupFileExt mAcceptHeader mFileExt map of
-    Nothing -> app req respond
-    Just r  -> respond (r status200 [])
+  fileExtsToMiddleware $
+    mapResponse (\f -> f status200 []) contentTypeRoutes
 ```
 
 
