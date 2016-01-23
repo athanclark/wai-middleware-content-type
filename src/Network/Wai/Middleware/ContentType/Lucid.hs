@@ -1,7 +1,11 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
 module Network.Wai.Middleware.ContentType.Lucid where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.HTTP.Types                      (Status, ResponseHeaders)
+import           Network.HTTP.Types                      (status200, Status, ResponseHeaders)
 import           Network.Wai                             (Response, responseBuilder)
 
 import qualified Lucid.Base                              as L
@@ -13,10 +17,15 @@ import qualified Data.HashMap.Lazy                       as HM
 
 lucid :: Monad m =>
          L.HtmlT m ()
-      -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+      -> FileExtListenerT m ()
 lucid i = do
-  i' <- lift (lucidOnly i)
-  tell' (HM.singleton Html i')
+  f <- lift (lucidOnly i)
+  tell' $ HM.singleton Html $
+    ResponseVia
+      i
+      status200
+      [("Content-Type","text/html")]
+      (const f)
 
 {-# INLINEABLE lucid #-}
 

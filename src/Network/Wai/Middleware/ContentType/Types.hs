@@ -8,6 +8,7 @@
   , StandaloneDeriving
   , UndecidableInstances
   , MultiParamTypeClasses
+  , ExistentialQuantification
   , GeneralizedNewtypeDeriving
   #-}
 
@@ -27,10 +28,15 @@ module Network.Wai.Middleware.ContentType.Types
   , allFileExts
   , getFileExt
   , toExt
+  , ResponseVia (..)
+  , runResponseVia
+  , mapStatus
+  , mapHeaders
   , FileExtMap
   , FileExtListenerT (..)
   , execFileExtListenerT
-  , mapResponse
+  , overFileExts
+  , mapFileExtMap
   , -- * Utilities
     tell'
   , AcceptHeader
@@ -118,8 +124,36 @@ toExt x | x `elem` htmls       = Just Html
 {-# INLINEABLE toExt #-}
 
 
+-- ayy, lamo. Basically.
+data ResponseVia = forall a. ResponseVia
+  { responseData     :: !a
+  , responseStatus   :: !Status
+  , responseHeaders  :: !ResponseHeaders
+  , responseFunction :: !(a -> Status -> ResponseHeaders -> Response)
+  }
 
-type FileExtMap a = HashMap FileExt a
+runResponseVia :: ResponseVia -> Response
+runResponseVia (ResponseVia d s hs f) = f d s hs
+
+mapStatus :: (Status -> Status) -> ResponseVia -> ResponseVia
+mapStatus f (ResponseVia d s hs f') = ResponseVia d (f s) hs f'
+
+mapHeaders :: (ResponseHeaders -> ResponseHeaders) -> ResponseVia -> ResponseVia
+mapHeaders f (ResponseVia d s hs f') = ResponseVia d s (f hs) f'
+
+overFileExts :: Monad m =>
+                [FileExt]
+             -> (ResponseVia -> ResponseVia)
+             -> FileExtListenerT m a
+             -> FileExtListenerT m a
+overFileExts fs f (FileExtListenerT xs) = do
+  i <- get
+  let i' = HM.mapWithKey (\k x -> if k `elem` fs then f x else x) i
+  (x, o) <- lift (runStateT xs i')
+  put o
+  pure x
+
+type FileExtMap = HashMap FileExt ResponseVia
 
 -- | The monad for our DSL - when using the combinators, our result will be this
 --   type:
@@ -128,43 +162,39 @@ type FileExtMap a = HashMap FileExt a
 --   > myListener = do
 --   >   text "Text!"
 --   >   json ("Json!" :: T.Text)
-newtype FileExtListenerT r m a = FileExtListenerT
-  { runFileExtListenerT :: StateT (FileExtMap r) m a
+newtype FileExtListenerT m a = FileExtListenerT
+  { runFileExtListenerT :: StateT FileExtMap m a
   } deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
-             , MonadTrans, MonadReader r', MonadWriter w, MonadState (FileExtMap r)
+             , MonadTrans, MonadReader r', MonadWriter w, MonadState FileExtMap
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
              , MonadMask, MonadLogger, MonadUrl b f, MFunctor
              )
 
-deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT r m)
+deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
 
-instance MonadTransControl (FileExtListenerT r) where
-  type StT (FileExtListenerT r) a = StT (StateT (FileExtMap r)) a
+instance MonadTransControl FileExtListenerT where
+  type StT FileExtListenerT a = StT (StateT FileExtMap) a
   liftWith = defaultLiftWith FileExtListenerT runFileExtListenerT
   restoreT = defaultRestoreT FileExtListenerT
 
 instance ( MonadBaseControl b m
-         ) => MonadBaseControl b (FileExtListenerT r m) where
-  type StM (FileExtListenerT r m) a = ComposeSt (FileExtListenerT r) m a
+         ) => MonadBaseControl b (FileExtListenerT m) where
+  type StM (FileExtListenerT m) a = ComposeSt FileExtListenerT m a
   liftBaseWith = defaultLiftBaseWith
   restoreM     = defaultRestoreM
 
-mapResponse :: Monad m =>
-               ((Status -> ResponseHeaders -> Response) -> Response)
-            -> FileExtListenerT (Status -> ResponseHeaders -> Response) m a
-            -> FileExtListenerT Response m a
-mapResponse f (FileExtListenerT xs) =
-  FileExtListenerT $ mapState (HM.map f) (HM.map (const . const)) xs
-  where
-    mapState to from xs = do
-      i <- get
-      (x,s) <- lift (runStateT xs (from i))
-      put (to s)
-      pure x
-
-execFileExtListenerT :: Monad m => FileExtListenerT r m a -> m (FileExtMap r)
+execFileExtListenerT :: Monad m => FileExtListenerT m a -> m FileExtMap
 execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
 
+mapFileExtMap :: ( Monad m
+                 ) => (FileExtMap -> FileExtMap)
+                   -> FileExtListenerT m a
+                   -> FileExtListenerT m a
+mapFileExtMap f (FileExtListenerT xs) = do
+  map      <- get
+  (x,map') <- lift (runStateT xs (f map))
+  put map'
+  return x
 
 
 -- * Headers
@@ -205,7 +235,7 @@ possibleFileExts accept = if not (null wildcard) then wildcard else computed
 --   > myApp = do
 --   >   text "foo"
 --   >   invalidEncoding myErrorHandler -- handles all except text/plain
-invalidEncoding :: Monad m => r -> FileExtListenerT r m ()
+invalidEncoding :: Monad m => ResponseVia -> FileExtListenerT m ()
 invalidEncoding r = mapM_ (\t -> tell' $ HM.singleton t r) allFileExts
 
 {-# INLINEABLE invalidEncoding #-}

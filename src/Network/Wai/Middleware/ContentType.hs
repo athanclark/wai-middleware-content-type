@@ -53,11 +53,13 @@ import Control.Monad
 -- a map of responses, find a response.
 lookupFileExt :: Maybe AcceptHeader
               -> Maybe FileExt
-              -> FileExtMap r
-              -> Maybe r
-lookupFileExt mAcceptBS mFe fexts =
-  getFirst . foldMap (First . flip HM.lookup fexts) . findFE $
-    maybe allFileExts possibleFileExts mAcceptBS
+              -> FileExtMap
+              -> Maybe Response
+lookupFileExt mAcceptBS mFe map =
+    getFirst
+  . foldMap (\fe -> First $ runResponseVia <$> HM.lookup fe map)
+  . findFE
+  $ maybe allFileExts possibleFileExts mAcceptBS
   where
     findFE :: [FileExt] -> [FileExt]
     findFE xs =
@@ -65,7 +67,7 @@ lookupFileExt mAcceptBS mFe fexts =
         Nothing -> xs
         Just fe -> fe <$ guard (fe `elem` xs)
 
-fileExtsToMiddleware :: Monad m => FileExtListenerT Response m a -> MiddlewareT m
+fileExtsToMiddleware :: Monad m => FileExtListenerT m a -> MiddlewareT m
 fileExtsToMiddleware xs app req respond = do
   map <- execFileExtListenerT xs
   let mAcceptHeader = lookup "Accept" (requestHeaders req)

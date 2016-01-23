@@ -1,8 +1,13 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
+
 module Network.Wai.Middleware.ContentType.Lucius where
 
 import           Network.Wai.Middleware.ContentType.Types as CT
 import           Network.Wai.Middleware.ContentType.Text
-import           Network.HTTP.Types                       (Status, ResponseHeaders)
+import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
 import           Text.Lucius
@@ -13,9 +18,14 @@ import qualified Data.HashMap.Lazy                        as HM
 
 lucius :: Monad m =>
           Css
-       -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+       -> FileExtListenerT m ()
 lucius i =
-  tell' $ HM.singleton CT.Css (luciusOnly i)
+  tell' $ HM.singleton CT.Css $
+    ResponseVia
+      i
+      status200
+      [("Content-Type","text/css")]
+      luciusOnly
 
 {-# INLINEABLE lucius #-}
 

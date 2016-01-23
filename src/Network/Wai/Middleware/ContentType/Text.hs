@@ -1,7 +1,11 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
 module Network.Wai.Middleware.ContentType.Text where
 
 import           Network.Wai.Middleware.ContentType.Types
-import           Network.HTTP.Types                       (Status, ResponseHeaders)
+import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response, responseBuilder)
 
 import qualified Data.Text.Lazy                           as LT
@@ -13,9 +17,14 @@ import qualified Data.HashMap.Lazy                        as HM
 
 text :: Monad m =>
         LT.Text
-     -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+     -> FileExtListenerT m ()
 text i =
-  tell' $ HM.singleton Text (textOnly i)
+  tell' $ HM.singleton Text $
+    ResponseVia
+      i
+      status200
+      [("Content-Type", "text/plain")]
+      textOnly
 
 {-# INLINEABLE text #-}
 

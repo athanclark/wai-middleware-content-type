@@ -1,8 +1,13 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
+
 module Network.Wai.Middleware.ContentType.Pandoc where
 
 import           Network.Wai.Middleware.ContentType.Types
 import           Network.Wai.Middleware.ContentType.Text
-import           Network.HTTP.Types                       (Status, ResponseHeaders)
+import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
 import qualified Data.Text.Lazy                           as LT
@@ -14,9 +19,14 @@ import qualified Data.HashMap.Lazy                        as HM
 
 markdown :: Monad m =>
             P.Pandoc
-         -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+         -> FileExtListenerT m ()
 markdown i =
-  tell' $ HM.singleton Markdown (markdownOnly i)
+  tell' $ HM.singleton Markdown $
+    ResponseVia
+      i
+      status200
+      [("Content-Type","text/markdown")]
+      markdownOnly
 
 {-# INLINEABLE markdown #-}
 

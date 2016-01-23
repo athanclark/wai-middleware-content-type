@@ -1,8 +1,12 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
 module Network.Wai.Middleware.ContentType.Json where
 
 import           Network.Wai.Middleware.ContentType.Types
 import           Network.Wai.Middleware.ContentType.ByteString
-import           Network.HTTP.Types                      (Status, ResponseHeaders)
+import           Network.HTTP.Types                      (status200, Status, ResponseHeaders)
 import           Network.Wai                             (Response)
 
 import qualified Data.Aeson                              as A
@@ -14,9 +18,10 @@ import qualified Data.Aeson                              as A
 json :: ( A.ToJSON j
         , Monad m
         ) => j
-          -> FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+          -> FileExtListenerT m ()
 json =
-  bytestring Json . A.encode
+  (overFileExts [Json] $ mapHeaders (("Content-Type","application/json"):))
+  . bytestring Json . A.encode
 
 {-# INLINEABLE json #-}
 
