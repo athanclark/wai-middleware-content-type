@@ -5,7 +5,6 @@ import           Network.HTTP.Types                      (status200, Status, Res
 import           Network.Wai                             (Response, responseLBS)
 
 import qualified Data.ByteString.Lazy                    as LBS
-import qualified Blaze.ByteString.Builder.ByteString     as BU
 import qualified Data.HashMap.Lazy                       as HM
 
 

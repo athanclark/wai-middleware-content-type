@@ -170,6 +170,10 @@ newtype FileExtListenerT m a = FileExtListenerT
              , MonadMask, MonadLogger, MonadUrl b f, MFunctor
              )
 
+instance Monad m => Monoid (FileExtListenerT m ()) where
+  mempty = FileExtListenerT $ put mempty
+  mappend x y = x >> y
+
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
 
 instance MonadTransControl FileExtListenerT where
@@ -191,9 +195,9 @@ mapFileExtMap :: ( Monad m
                    -> FileExtListenerT m a
                    -> FileExtListenerT m a
 mapFileExtMap f (FileExtListenerT xs) = do
-  map      <- get
-  (x,map') <- lift (runStateT xs (f map))
-  put map'
+  m      <- get
+  (x,m') <- lift (runStateT xs (f m))
+  put m'
   return x
 
 

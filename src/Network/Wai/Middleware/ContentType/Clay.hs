@@ -26,7 +26,7 @@ clay c as i =
       (c,as,i)
       status200
       [("Content-Type","text/css")]
-      (\(c,as,i) -> clayOnly c as i)
+      (\(c',as',i') -> clayOnly c' as' i')
 
 {-# INLINEABLE clay #-}
 

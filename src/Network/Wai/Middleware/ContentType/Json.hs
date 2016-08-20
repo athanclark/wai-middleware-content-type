@@ -6,7 +6,7 @@ module Network.Wai.Middleware.ContentType.Json where
 
 import           Network.Wai.Middleware.ContentType.Types
 import           Network.Wai.Middleware.ContentType.ByteString
-import           Network.HTTP.Types                      (status200, Status, ResponseHeaders)
+import           Network.HTTP.Types                      (Status, ResponseHeaders)
 import           Network.Wai                             (Response)
 
 import qualified Data.Aeson                              as A

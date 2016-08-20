@@ -55,9 +55,9 @@ lookupFileExt :: Maybe AcceptHeader
               -> Maybe FileExt
               -> FileExtMap
               -> Maybe Response
-lookupFileExt mAcceptBS mFe map =
+lookupFileExt mAcceptBS mFe m =
     getFirst
-  . foldMap (\fe -> First $ runResponseVia <$> HM.lookup fe map)
+  . foldMap (\fe -> First $ runResponseVia <$> HM.lookup fe m)
   . findFE
   $ maybe allFileExts possibleFileExts mAcceptBS
   where
@@ -69,9 +69,9 @@ lookupFileExt mAcceptBS mFe map =
 
 fileExtsToMiddleware :: Monad m => FileExtListenerT m a -> MiddlewareT m
 fileExtsToMiddleware xs app req respond = do
-  map <- execFileExtListenerT xs
+  m <- execFileExtListenerT xs
   let mAcceptHeader = lookup "Accept" (requestHeaders req)
       mFileExt      = getFileExt (pathInfo req)
-  case lookupFileExt mAcceptHeader mFileExt map of
+  case lookupFileExt mAcceptHeader mFileExt m of
     Nothing -> app req respond
     Just r  -> respond r
