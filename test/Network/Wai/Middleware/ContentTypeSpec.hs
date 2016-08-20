@@ -162,8 +162,8 @@ app =
   fileExtsToMiddleware allExamples $
   (\req respond -> respond (textOnly "Something went wrong" status406 []))
 
-allExamples :: FileExtListenerT Response IO ()
-allExamples = mapResponse (\f -> f status200 []) $ do
+allExamples :: FileExtListenerT IO ()
+allExamples = do
   text "Text!"
   json ("Json!" :: T.Text)
   lucid (L.toHtmlRaw ("Html!" :: T.Text))
