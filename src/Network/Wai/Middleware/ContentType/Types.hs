@@ -85,6 +85,7 @@ data FileExt
   | Json
   | Text
   | Markdown
+  | Other T.Text -- ^ incliding prefix period, i.e. `.foo`
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable FileExt
@@ -112,7 +113,7 @@ toExt x | x `elem` htmls       = Just Html
         | x `elem` jsons       = Just Json
         | x `elem` texts       = Just Text
         | x `elem` markdowns   = Just Markdown
-        | otherwise            = Nothing
+        | otherwise            = Just $ Other x
   where
     htmls       = [".htm", ".html"]
     csss        = [".css"]
@@ -215,16 +216,22 @@ possibleFileExts accept = if not (null wildcard) then wildcard else computed
   where
     computed :: [FileExt]
     computed = concat $
-      catMaybes [ mapAccept [ ("application/json"       :: BS.ByteString, [Json])
-                            , ("application/javascript" :: BS.ByteString, [JavaScript,Json])
+      catMaybes [ mapAccept [ ( "application/json"       :: BS.ByteString
+                              , [Json])
+                            , ( "application/javascript" :: BS.ByteString
+                              , [JavaScript,Json])
                             ] accept
-                , mapAccept [ ("text/html" :: BS.ByteString, [Html])
+                , mapAccept [ ( "text/html" :: BS.ByteString
+                              , [Html])
                             ] accept
-                , mapAccept [ ("text/plain" :: BS.ByteString, [Text, Markdown])
+                , mapAccept [ ( "text/plain" :: BS.ByteString
+                              , [Text, Markdown])
                             ] accept
-                , mapAccept [ ("text/markdown" :: BS.ByteString, [Markdown])
+                , mapAccept [ ( "text/markdown" :: BS.ByteString
+                              , [Markdown])
                             ] accept
-                , mapAccept [ ("text/css" :: BS.ByteString, [Css])
+                , mapAccept [ ( "text/css" :: BS.ByteString
+                              , [Css])
                             ] accept
                 ]
 
