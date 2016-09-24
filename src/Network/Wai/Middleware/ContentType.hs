@@ -49,6 +49,7 @@ import qualified Data.HashMap.Lazy as HM
 import Data.Monoid
 import Control.Monad
 
+
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
 lookupFileExt :: Maybe AcceptHeader
@@ -59,13 +60,14 @@ lookupFileExt mAcceptBS mFe m =
     getFirst
   . foldMap (\fe -> First $ runResponseVia <$> HM.lookup fe m)
   . findFE
-  $ maybe allFileExts possibleFileExts mAcceptBS
+  $ maybe (HM.keys m) possibleFileExts mAcceptBS
   where
     findFE :: [FileExt] -> [FileExt]
     findFE xs =
       case mFe of
         Nothing -> xs
         Just fe -> fe <$ guard (fe `elem` xs)
+
 
 fileExtsToMiddleware :: Monad m => FileExtListenerT m a -> MiddlewareT m
 fileExtsToMiddleware xs app req respond = do
