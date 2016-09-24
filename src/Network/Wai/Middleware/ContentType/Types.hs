@@ -100,27 +100,31 @@ allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
 getFileExt :: [T.Text] -> Maybe FileExt
 getFileExt chunks = case chunks of
   [] -> Nothing
-  xs -> toExt . snd . T.breakOn "." $ last xs
+  xs -> toExt . T.breakOnEnd "." $ last xs
 
 {-# INLINEABLE getFileExt #-}
 
 -- | matches a file extension (__including__ it's prefix dot - @.html@ for example)
 --   to a known one.
-toExt :: T.Text -> Maybe FileExt
-toExt x | x `elem` htmls       = Just Html
-        | x `elem` csss        = Just Css
-        | x `elem` javascripts = Just JavaScript
-        | x `elem` jsons       = Just Json
-        | x `elem` texts       = Just Text
-        | x `elem` markdowns   = Just Markdown
-        | otherwise            = Just $ Other x
+toExt :: (T.Text, T.Text) -> Maybe FileExt
+toExt (y,x)
+  | x == ""
+    || T.length y == 0
+    || T.last y /= '.'   = Nothing
+  | x `elem` htmls       = Just Html
+  | x `elem` csss        = Just Css
+  | x `elem` javascripts = Just JavaScript
+  | x `elem` jsons       = Just Json
+  | x `elem` texts       = Just Text
+  | x `elem` markdowns   = Just Markdown
+  | otherwise            = Just $ Other x
   where
-    htmls       = [".htm", ".html"]
-    csss        = [".css"]
-    javascripts = [".js", ".javascript"]
-    jsons       = [".json"]
-    texts       = [".txt"]
-    markdowns   = [".md", ".markdown"]
+    htmls       = ["htm", "html"]
+    csss        = ["css"]
+    javascripts = ["js", "javascript"]
+    jsons       = ["json"]
+    texts       = ["txt"]
+    markdowns   = ["md", "markdown"]
 
 {-# INLINEABLE toExt #-}
 
@@ -128,7 +132,7 @@ toExt x | x `elem` htmls       = Just Html
 -- ayy, lamo. Basically.
 data ResponseVia = forall a. ResponseVia
   { responseData     :: !a
-  , responseStatus   :: !Status
+  , responseStatus   :: {-# UNPACK #-} !Status
   , responseHeaders  :: !ResponseHeaders
   , responseFunction :: !(a -> Status -> ResponseHeaders -> Response)
   }

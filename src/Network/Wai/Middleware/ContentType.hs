@@ -50,6 +50,7 @@ import Data.Monoid
 import Control.Monad
 
 
+
 -- | Given an HTTP @Accept@ header and a content type to base lookups off of, and
 -- a map of responses, find a response.
 lookupFileExt :: Maybe AcceptHeader

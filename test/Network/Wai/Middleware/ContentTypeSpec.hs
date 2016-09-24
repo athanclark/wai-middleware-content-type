@@ -140,7 +140,7 @@ mockServer = do
     with (return app) $ do
       describe "No extension, with header" $
         it " should respond with 200" $
-        HW.request "GET" "/" [("Accept", "text/plain")] "" `shouldRespondWith`
+        HW.request "GET" "/index" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
            , matchBody = Just "Text!"
            }
