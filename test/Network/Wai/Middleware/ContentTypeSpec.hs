@@ -11,6 +11,7 @@ import Network.Wai.Internal
 import Network.HTTP.Types
 import qualified Data.Text      as T
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import qualified Lucid          as L
 import qualified Text.Lucius    as SL
 import qualified Text.Julius    as SJ
@@ -98,6 +99,12 @@ mockServer = do
         "" { matchStatus = 200
            , matchBody = Just "*Pandoc*!"
            }
+      describe "Foo" $
+        it "should respond with 200" $
+        HW.get "/index.foo" `shouldRespondWith`
+        "" { matchStatus = 200
+           , matchBody = Just "Foo"
+           }
   describe "All Requests Respond to Both" $
     with (return app) $ do
       describe "Text" $
@@ -173,3 +180,4 @@ allExamples = do
     case P.readMarkdown P.def "*Pandoc*!" of
       Left e -> error $ show e
       Right p -> p
+  bytestring (Other "foo") (LT.encodeUtf8 "Foo")
