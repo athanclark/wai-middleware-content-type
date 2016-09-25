@@ -25,7 +25,6 @@ Portability : GHC
 module Network.Wai.Middleware.ContentType.Types
   ( -- * Types
     FileExt (..)
-  , allFileExts
   , getFileExt
   , toExt
   , ResponseVia (..)
@@ -48,7 +47,7 @@ import qualified Data.Text              as T
 import           Data.HashMap.Lazy hiding (null)
 import qualified Data.HashMap.Lazy as HM
 import           Data.Monoid
-import           Data.Maybe (fromMaybe, catMaybes)
+import           Data.Maybe (fromMaybe)
 import           Data.Url
 import           Data.Hashable
 import qualified Data.ByteString        as BS
@@ -90,11 +89,6 @@ data FileExt
 
 instance Hashable FileExt
 
--- | All file extensions, in the order of likeliness
-allFileExts :: [FileExt]
-allFileExts = [Html,Text,Json,JavaScript,Css,Markdown]
-
-{-# INLINEABLE allFileExts #-}
 
 -- | Gets the known file extension from a Request's 'Network.Wai.pathInfo'.
 getFileExt :: [T.Text] -> Maybe FileExt
@@ -108,7 +102,7 @@ getFileExt chunks = case chunks of
 --   to a known one.
 toExt :: (T.Text, T.Text) -> Maybe FileExt
 toExt (y,x)
-  | x == ""
+  |    x == ""
     || T.length y == 0
     || T.last y /= '.'   = Nothing
   | x `elem` htmls       = Just Html
@@ -215,33 +209,37 @@ type AcceptHeader = BS.ByteString
 
 -- | Takes an @Accept@ header and returns the other
 -- file types handleable, in order of prescedence.
-possibleFileExts :: AcceptHeader -> [FileExt]
-possibleFileExts accept = if not (null wildcard) then wildcard else computed
+possibleFileExts :: [FileExt] -> AcceptHeader -> [FileExt]
+possibleFileExts allFileExts accept = if not (null wildcard) then wildcard else computed
   where
     computed :: [FileExt]
-    computed = concat $
-      catMaybes [ mapAccept [ ( "application/json"       :: BS.ByteString
-                              , [Json])
-                            , ( "application/javascript" :: BS.ByteString
-                              , [JavaScript,Json])
-                            ] accept
-                , mapAccept [ ( "text/html" :: BS.ByteString
-                              , [Html])
-                            ] accept
-                , mapAccept [ ( "text/plain" :: BS.ByteString
-                              , [Text, Markdown])
-                            ] accept
-                , mapAccept [ ( "text/markdown" :: BS.ByteString
-                              , [Markdown])
-                            ] accept
-                , mapAccept [ ( "text/css" :: BS.ByteString
-                              , [Css])
-                            ] accept
-                ]
+    computed = fromMaybe [] $
+      mapAccept [ ( "application/json"       :: BS.ByteString
+                  , [Json]
+                  )
+                , ( "application/javascript" :: BS.ByteString
+                  , [JavaScript,Json]
+                  )
+                , ( "text/html" :: BS.ByteString
+                  , [Html]
+                  )
+                , ( "text/css" :: BS.ByteString
+                  , [Css]
+                  )
+                , ( "text/markdown" :: BS.ByteString
+                  , [Markdown]
+                  )
+                , ( "text/plain" :: BS.ByteString
+                  , [Text, Markdown]
+                  )
+                ] accept
 
     wildcard :: [FileExt]
-    wildcard = fromMaybe [] $ mapAccept [ ("*/*" :: BS.ByteString, allFileExts)
-                                        ] accept
+    wildcard = fromMaybe [] $
+      mapAccept [ ("*/*" :: BS.ByteString
+                  , allFileExts
+                  )
+                ] accept
 
 {-# INLINEABLE possibleFileExts #-}
 
@@ -251,6 +249,6 @@ possibleFileExts accept = if not (null wildcard) then wildcard else computed
 --   >   text "foo"
 --   >   invalidEncoding myErrorHandler -- handles all except text/plain
 invalidEncoding :: Monad m => ResponseVia -> FileExtListenerT m ()
-invalidEncoding r = mapM_ (\t -> tell' $ HM.singleton t r) allFileExts
+invalidEncoding r = mapM_ (\t -> tell' $ HM.singleton t r) [Html,Css,JavaScript,Json,Text,Markdown]
 
 {-# INLINEABLE invalidEncoding #-}

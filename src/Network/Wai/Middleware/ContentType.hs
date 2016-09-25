@@ -46,6 +46,7 @@ import Network.Wai.Middleware.ContentType.Pandoc
 import Network.Wai.Trans (Response, MiddlewareT, requestHeaders,
                          pathInfo)
 import qualified Data.HashMap.Lazy as HM
+import qualified Data.HashSet  as HS
 import Data.Monoid
 import Control.Monad
 
@@ -61,13 +62,14 @@ lookupFileExt mAcceptBS mFe m =
     getFirst
   . foldMap (\fe -> First $ runResponseVia <$> HM.lookup fe m)
   . findFE
-  $ maybe (HM.keys m) possibleFileExts mAcceptBS
+  $ maybe (HM.keys m) (possibleFileExts $ HM.keys m) mAcceptBS
   where
     findFE :: [FileExt] -> [FileExt]
     findFE xs =
       case mFe of
         Nothing -> xs
-        Just fe -> fe <$ guard (fe `elem` xs)
+        Just fe | fe `elem` xs -> [fe]
+                | otherwise    -> []
 
 
 fileExtsToMiddleware :: Monad m => FileExtListenerT m a -> MiddlewareT m
