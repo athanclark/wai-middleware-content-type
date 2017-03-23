@@ -84,7 +84,7 @@ data FileExt
   | Json
   | Text
   | Markdown
-  | Other T.Text -- ^ incliding prefix period, i.e. `.foo`
+  | Other T.Text -- ^ excluding prefix period, i.e. `foo`
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable FileExt

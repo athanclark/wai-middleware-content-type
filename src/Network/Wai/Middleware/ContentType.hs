@@ -49,6 +49,7 @@ import qualified Data.HashMap.Lazy as HM
 import qualified Data.HashSet  as HS
 import Data.Monoid
 import Control.Monad
+import Debug.Trace (traceShow)
 
 
 
