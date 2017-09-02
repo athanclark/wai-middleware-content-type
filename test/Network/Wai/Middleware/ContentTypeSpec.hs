@@ -29,37 +29,37 @@ mockServer = do
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Text!"
+           , matchBody = "Text!"
            }
       describe "Json" $
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "application/json")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "\"Json!\""
+           , matchBody = "\"Json!\""
            }
       describe "Html" $
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "text/html")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Html!"
+           , matchBody = "Html!"
            }
       describe "Css" $
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "text/css")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "body{background:#fff}"
+           , matchBody = "body{background:#fff}"
            }
       describe "JavaScript" $
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "application/javascript")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "function foo () {return;}"
+           , matchBody = "function foo () {return;}"
            }
       describe "Markdown" $
         it "should respond with 200" $
         HW.request "GET" "/" [("Accept", "text/markdown")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "*Pandoc*!"
+           , matchBody = "*Pandoc*!"
            }
   describe "All Requests Respond to the File Extension" $
     with (return app) $ do
@@ -67,43 +67,43 @@ mockServer = do
         it "should respond with 200" $
         HW.get "/index.txt" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Text!"
+           , matchBody = "Text!"
            }
       describe "Json" $
         it "should respond with 200" $
         HW.get "/index.json" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "\"Json!\""
+           , matchBody = "\"Json!\""
            }
       describe "Html" $
         it "should respond with 200" $
         HW.get "index.html" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Html!"
+           , matchBody = "Html!"
            }
       describe "Css" $
         it "should respond with 200" $
         HW.get "/index.css" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "body{background:#fff}"
+           , matchBody = "body{background:#fff}"
            }
       describe "JavaScript" $
         it "should respond with 200" $
         HW.get "/index.js" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "function foo () {return;}"
+           , matchBody = "function foo () {return;}"
            }
       describe "Markdown" $
         it "should respond with 200" $
         HW.get "/index.md" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "*Pandoc*!"
+           , matchBody = "*Pandoc*!"
            }
       describe "Foo" $
         it "should respond with 200" $
         HW.get "/index.foo" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Foo"
+           , matchBody = "Foo"
            }
   describe "All Requests Respond to Both" $
     with (return app) $ do
@@ -111,37 +111,37 @@ mockServer = do
         it "should respond with 200" $
         HW.request "GET" "/index.txt" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Text!"
+           , matchBody = "Text!"
            }
       describe "Json" $
         it "should respond with 200" $
         HW.request "GET" "/index.json" [("Accept", "application/json")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "\"Json!\""
+           , matchBody = "\"Json!\""
            }
       describe "Html" $
         it "should respond with 200" $
         HW.request "GET" "/index.html" [("Accept", "text/html")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Html!"
+           , matchBody = "Html!"
            }
       describe "Css" $
         it "should respond with 200" $
         HW.request "GET" "/index.css" [("Accept", "text/css")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "body{background:#fff}"
+           , matchBody = "body{background:#fff}"
            }
       describe "JavaScript" $
         it "should respond with 200" $
         HW.request "GET" "/index.js" [("Accept", "application/javascript")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "function foo () {return;}"
+           , matchBody = "function foo () {return;}"
            }
       describe "Markdown" $
         it "should respond with 200" $
         HW.request "GET" "/index.md" [("Accept", "text/markdown")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "*Pandoc*!"
+           , matchBody = "*Pandoc*!"
            }
   describe "Outlier behavior" $
     with (return app) $ do
@@ -149,13 +149,13 @@ mockServer = do
         it " should respond with 200" $
         HW.request "GET" "/index" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "Text!"
+           , matchBody = "Text!"
            }
       describe ".markdown & text/plain" $
         it " should respond with 200" $
         HW.request "GET" "/index.md" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
-           , matchBody = Just "*Pandoc*!"
+           , matchBody = "*Pandoc*!"
            }
   describe "Unfulfillable accept headers should break" $
     with (return app) $ do

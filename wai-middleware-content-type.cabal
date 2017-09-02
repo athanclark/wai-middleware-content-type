@@ -39,12 +39,14 @@ Library
                       , bytestring
                       , clay
                       , exceptions
+                      , extractable-singleton
                       , hashable
                       , http-media
                       , http-types
                       , lucid
                       , mmorph
                       , monad-control
+                      , monad-control-aligned
                       , monad-logger
                       , mtl
                       , pandoc
@@ -56,6 +58,7 @@ Library
                       , unordered-containers
                       , urlpath >= 5.0.0.1
                       , wai >= 3.2
+                      , wai-logger
                       , wai-transformers
 
 Test-Suite test

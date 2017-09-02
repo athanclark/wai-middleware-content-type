@@ -6,15 +6,19 @@ import           Network.Wai                             (Response, responseLBS)
 
 import qualified Data.ByteString.Lazy                    as LBS
 import qualified Data.HashMap.Lazy                       as HM
+import           Control.Monad.Reader (ask)
+import           Control.Monad.IO.Class (MonadIO (..))
 
 
 -- * Lifted Combinators
 
-bytestring :: Monad m =>
+bytestring :: MonadIO m =>
               FileExt
            -> LBS.ByteString
            -> FileExtListenerT m ()
-bytestring fe i =
+bytestring fe i = do
+  aplogger <- getLogger
+  liftIO $ aplogger status200 (Just $ fromIntegral $ LBS.length i)
   tell' $ HM.singleton fe $
     ResponseVia
       i

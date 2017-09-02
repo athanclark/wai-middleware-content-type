@@ -36,6 +36,7 @@ module Network.Wai.Middleware.ContentType.Types
   , execFileExtListenerT
   , overFileExts
   , mapFileExtMap
+  , getLogger
   , -- * Utilities
     tell'
   , AcceptHeader
@@ -66,8 +67,9 @@ import           Control.Monad.Morph
 
 import           GHC.Generics
 import           Network.HTTP.Types (Status, ResponseHeaders)
-import           Network.Wai.Trans (Response)
 import           Network.HTTP.Media (mapAccept)
+import           Network.Wai.Trans (Response)
+import           Network.Wai.Logger (ApacheLogger)
 
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
@@ -145,10 +147,11 @@ overFileExts :: Monad m =>
              -> (ResponseVia -> ResponseVia)
              -> FileExtListenerT m a
              -> FileExtListenerT m a
-overFileExts fs f (FileExtListenerT xs) = do
+overFileExts fs f (FileExtListenerT (ReaderT xs)) = do
+  aplogger <- getLogger
   i <- get
   let i' = HM.mapWithKey (\k x -> if k `elem` fs then f x else x) i
-  (x, o) <- lift (runStateT xs i')
+  (x, o) <- lift (runStateT (xs aplogger) i')
   put o
   pure x
 
@@ -162,12 +165,21 @@ type FileExtMap = HashMap FileExt ResponseVia
 --   >   text "Text!"
 --   >   json ("Json!" :: T.Text)
 newtype FileExtListenerT m a = FileExtListenerT
-  { runFileExtListenerT :: StateT FileExtMap m a
+  { runFileExtListenerT :: ReaderT (Status -> Maybe Integer -> IO ()) (StateT FileExtMap m) a
   } deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
-             , MonadTrans, MonadReader r', MonadWriter w, MonadState FileExtMap
+             , MonadWriter w, MonadState FileExtMap
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
-             , MonadMask, MonadLogger, MonadUrl b f, MFunctor
+             , MonadMask, MonadLogger, MonadUrl b f
              )
+
+getLogger :: Monad m => FileExtListenerT m (Status -> Maybe Integer -> IO ())
+getLogger = FileExtListenerT $ ReaderT $ \aplogger -> pure aplogger
+
+instance MonadTrans FileExtListenerT where
+  lift m = FileExtListenerT $ ReaderT $ \_ -> lift m
+
+instance MonadReader r m => MonadReader r (FileExtListenerT m) where
+  ask = FileExtListenerT $ ReaderT $ \_ -> ask
 
 instance Monad m => Monoid (FileExtListenerT m ()) where
   mempty = FileExtListenerT $ put mempty
@@ -176,9 +188,11 @@ instance Monad m => Monoid (FileExtListenerT m ()) where
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
 
 instance MonadTransControl FileExtListenerT where
-  type StT FileExtListenerT a = StT (StateT FileExtMap) a
-  liftWith = defaultLiftWith FileExtListenerT runFileExtListenerT
-  restoreT = defaultRestoreT FileExtListenerT
+  type StT FileExtListenerT a = StT (StateT FileExtMap)
+        (StT (ReaderT (Status -> Maybe Integer -> IO ())) a)
+  liftWith f = FileExtListenerT $ ReaderT $ \aplogger -> liftWith $ \runInBase ->
+    f (\(FileExtListenerT (ReaderT xs)) -> runInBase (xs aplogger))
+  restoreT x = FileExtListenerT $ ReaderT $ \_ -> restoreT x
 
 instance ( MonadBaseControl b m
          ) => MonadBaseControl b (FileExtListenerT m) where
@@ -186,16 +200,24 @@ instance ( MonadBaseControl b m
   liftBaseWith = defaultLiftBaseWith
   restoreM     = defaultRestoreM
 
-execFileExtListenerT :: Monad m => FileExtListenerT m a -> m FileExtMap
-execFileExtListenerT xs = execStateT (runFileExtListenerT xs) mempty
+execFileExtListenerT :: Monad m
+                     => FileExtListenerT m a
+                     -> Maybe (Status -> Maybe Integer -> IO ())
+                     -> m FileExtMap
+execFileExtListenerT xs mL =
+  execStateT
+    ( runReaderT (runFileExtListenerT xs)
+      (fromMaybe (\_ _ -> pure ()) mL)
+    ) mempty
 
 mapFileExtMap :: ( Monad m
                  ) => (FileExtMap -> FileExtMap)
                    -> FileExtListenerT m a
                    -> FileExtListenerT m a
 mapFileExtMap f (FileExtListenerT xs) = do
+  aplogger <- getLogger
   m      <- get
-  (x,m') <- lift (runStateT xs (f m))
+  (x,m') <- lift (runStateT (runReaderT xs aplogger) (f m))
   put m'
   return x
 

@@ -10,13 +10,14 @@ import           Network.HTTP.Types                      (Status, ResponseHeader
 import           Network.Wai                             (Response)
 
 import qualified Data.Aeson                              as A
+import           Control.Monad.IO.Class (MonadIO (..))
 
 
 
 -- * Lifted Combinators
 
 json :: ( A.ToJSON j
-        , Monad m
+        , MonadIO m
         ) => j
           -> FileExtListenerT m ()
 json =
