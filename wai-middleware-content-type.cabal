@@ -1,5 +1,5 @@
 Name:                   wai-middleware-content-type
-Version:                0.5.1
+Version:                0.5.2
 Author:                 Athan Clark <athan.clark@gmail.com>
 Maintainer:             Athan Clark <athan.clark@gmail.com>
 License:                BSD3
@@ -49,7 +49,7 @@ Library
                       , monad-control-aligned
                       , monad-logger
                       , mtl
-                      , pandoc
+                      , pandoc >= 2.0
                       , resourcet
                       , shakespeare
                       , text

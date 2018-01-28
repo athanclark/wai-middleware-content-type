@@ -6,7 +6,6 @@ import           Network.Wai                             (Response, responseLBS)
 
 import qualified Data.ByteString.Lazy                    as LBS
 import qualified Data.HashMap.Lazy                       as HM
-import           Control.Monad.Reader (ask)
 import           Control.Monad.IO.Class (MonadIO (..))
 
 

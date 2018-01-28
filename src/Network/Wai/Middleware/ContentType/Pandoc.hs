@@ -34,5 +34,6 @@ markdown i =
 -- * Data Only
 
 markdownOnly :: P.Pandoc -> Status -> ResponseHeaders -> Response
-markdownOnly p =
-  textOnly (LT.pack $ P.writeMarkdown P.def p)
+markdownOnly p = case P.runPure (P.writeMarkdown P.def p) of
+  Left e -> error (show e)
+  Right x -> textOnly (LT.fromStrict x)

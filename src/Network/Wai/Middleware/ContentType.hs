@@ -48,12 +48,9 @@ import Network.Wai.Trans (Response, MiddlewareT, requestHeaders,
                          pathInfo)
 import Network.Wai.Logger (withStdoutLogger)
 import qualified Data.HashMap.Lazy as HM
-import qualified Data.HashSet  as HS
 import Data.Monoid
-import Control.Monad
 import Control.Monad.Trans.Control.Aligned (MonadBaseControl (..))
 import Data.Singleton.Class (Extractable (..))
-import Debug.Trace (traceShow)
 
 
 

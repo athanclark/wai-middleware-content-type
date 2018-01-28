@@ -63,13 +63,11 @@ import           Control.Monad.State
 import           Control.Monad.Writer hiding (tell)
 import           Control.Monad.Reader
 import           Control.Monad.Logger
-import           Control.Monad.Morph
 
 import           GHC.Generics
 import           Network.HTTP.Types (Status, ResponseHeaders)
 import           Network.HTTP.Media (mapAccept)
 import           Network.Wai.Trans (Response)
-import           Network.Wai.Logger (ApacheLogger)
 
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
@@ -180,6 +178,7 @@ instance MonadTrans FileExtListenerT where
 
 instance MonadReader r m => MonadReader r (FileExtListenerT m) where
   ask = FileExtListenerT $ ReaderT $ \_ -> ask
+  local f (FileExtListenerT (ReaderT g)) = FileExtListenerT $ ReaderT $ \x -> local f (g x)
 
 instance Monad m => Monoid (FileExtListenerT m ()) where
   mempty = FileExtListenerT $ put mempty
