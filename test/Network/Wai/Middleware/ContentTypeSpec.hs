@@ -15,7 +15,6 @@ import qualified Data.Text.Lazy.Encoding as LT
 import qualified Lucid          as L
 import qualified Text.Lucius    as SL
 import qualified Text.Julius    as SJ
-import qualified Text.Pandoc    as P
 import Test.Hspec
 import Test.Hspec.Wai   as HW
 
@@ -55,12 +54,6 @@ mockServer = do
         "" { matchStatus = 200
            , matchBody = "function foo () {return;}"
            }
-      describe "Markdown" $
-        it "should respond with 200" $
-        HW.request "GET" "/" [("Accept", "text/markdown")] "" `shouldRespondWith`
-        "" { matchStatus = 200
-           , matchBody = "*Pandoc*!"
-           }
   describe "All Requests Respond to the File Extension" $
     with (return app) $ do
       describe "Text" $
@@ -92,12 +85,6 @@ mockServer = do
         HW.get "/index.js" `shouldRespondWith`
         "" { matchStatus = 200
            , matchBody = "function foo () {return;}"
-           }
-      describe "Markdown" $
-        it "should respond with 200" $
-        HW.get "/index.md" `shouldRespondWith`
-        "" { matchStatus = 200
-           , matchBody = "*Pandoc*!"
            }
       describe "Foo" $
         it "should respond with 200" $
@@ -137,12 +124,6 @@ mockServer = do
         "" { matchStatus = 200
            , matchBody = "function foo () {return;}"
            }
-      describe "Markdown" $
-        it "should respond with 200" $
-        HW.request "GET" "/index.md" [("Accept", "text/markdown")] "" `shouldRespondWith`
-        "" { matchStatus = 200
-           , matchBody = "*Pandoc*!"
-           }
   describe "Outlier behavior" $
     with (return app) $ do
       describe "No extension, with header" $
@@ -150,12 +131,6 @@ mockServer = do
         HW.request "GET" "/index" [("Accept", "text/plain")] "" `shouldRespondWith`
         "" { matchStatus = 200
            , matchBody = "Text!"
-           }
-      describe ".markdown & text/plain" $
-        it " should respond with 200" $
-        HW.request "GET" "/index.md" [("Accept", "text/plain")] "" `shouldRespondWith`
-        "" { matchStatus = 200
-           , matchBody = "*Pandoc*!"
            }
   describe "Unfulfillable accept headers should break" $
     with (return app) $ do
@@ -176,8 +151,4 @@ allExamples = do
   lucid (L.toHtmlRaw ("Html!" :: T.Text))
   cassius ([SL.lucius|body {background: #fff;}|] undefined)
   julius  ([SJ.julius|function foo () {return;}|] undefined)
-  markdown $
-    case P.readMarkdown P.def "*Pandoc*!" of
-      Left e -> error $ show e
-      Right p -> p
   bytestring (Other "foo") (LT.encodeUtf8 "Foo")

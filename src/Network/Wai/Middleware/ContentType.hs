@@ -29,7 +29,6 @@ module Network.Wai.Middleware.ContentType
   , module Network.Wai.Middleware.ContentType.Lucid
   , module Network.Wai.Middleware.ContentType.Lucius
   , module Network.Wai.Middleware.ContentType.Text
-  , module Network.Wai.Middleware.ContentType.Pandoc
   ) where
 
 import Network.Wai.Middleware.ContentType.Types hiding (tell')
@@ -42,7 +41,6 @@ import Network.Wai.Middleware.ContentType.Julius
 import Network.Wai.Middleware.ContentType.Lucid
 import Network.Wai.Middleware.ContentType.Lucius
 import Network.Wai.Middleware.ContentType.Text
-import Network.Wai.Middleware.ContentType.Pandoc
 
 import Network.Wai.Trans (Response, MiddlewareT, requestHeaders,
                          pathInfo)

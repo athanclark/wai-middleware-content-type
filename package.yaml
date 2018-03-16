@@ -1,0 +1,95 @@
+name:                wai-middleware-content-type
+version:             0.6.0
+git:                 "git://git.localcooking.com/tooling/wai-middleware-content-type.git"
+license:             BSD3
+author:              "Athan Clark"
+maintainer:          "athan.clark@localcooking.com"
+copyright:           "2018 Athan Clark"
+category:            Web
+synopsis:            Route to different middlewares based on the incoming Accept header.
+
+ghc-options: -Wall
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
+
+dependencies:
+- base >= 4.8 && < 5
+- aeson
+- blaze-builder
+- blaze-html
+- bytestring
+- clay
+- exceptions
+- extractable-singleton
+- hashable
+- http-media
+- http-types
+- lucid
+- mmorph
+- monad-control
+- monad-control-aligned
+- monad-logger
+- mtl
+- resourcet
+- shakespeare
+- text
+- transformers
+- transformers-base
+- unordered-containers
+- urlpath >= 8.0.1
+- wai >= 3.2
+- wai-logger
+- wai-transformers
+
+library:
+  source-dirs: src
+
+tests:
+  wai-middleware-content-type-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -Wall
+    - -with-rtsopts=-N
+    dependencies:
+    - wai-middleware-content-type
+    - aeson
+    - blaze-builder
+    - blaze-html
+    - bytestring
+    - clay
+    - exceptions
+    - hashable
+    - hspec
+    - hspec-wai
+    - http-media
+    - http-types
+    - lucid
+    - mmorph
+    - monad-control
+    - monad-logger
+    - mtl
+    - resourcet
+    - shakespeare
+    - text
+    - tasty
+    - tasty-hspec
+    - transformers
+    - transformers-base
+    - urlpath
+    - unordered-containers
+    - wai
+    - wai-transformers
+    - warp
