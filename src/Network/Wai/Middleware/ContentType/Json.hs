@@ -4,8 +4,8 @@
 
 module Network.Wai.Middleware.ContentType.Json where
 
-import           Network.Wai.Middleware.ContentType.Types
-import           Network.Wai.Middleware.ContentType.ByteString
+import           Network.Wai.Middleware.ContentType.Types (FileExtListenerT, FileExt (Json), mapHeaders, overFileExts)
+import           Network.Wai.Middleware.ContentType.ByteString (bytestringOnly, bytestring)
 import           Network.HTTP.Types                      (Status, ResponseHeaders)
 import           Network.Wai                             (Response)
 
@@ -21,8 +21,8 @@ json :: ( A.ToJSON j
         ) => j
           -> FileExtListenerT m ()
 json =
-  (overFileExts [Json] $ mapHeaders (("Content-Type","application/json"):))
-  . bytestring Json . A.encode
+  overFileExts [Json] (mapHeaders (("Content-Type","application/json"):))
+    . bytestring Json . A.encode
 
 {-# INLINEABLE json #-}
 

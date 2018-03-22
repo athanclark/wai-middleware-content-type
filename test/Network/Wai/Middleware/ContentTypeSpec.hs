@@ -6,16 +6,17 @@
 module Network.Wai.Middleware.ContentTypeSpec where
 
 import Network.Wai.Middleware.ContentType
-import Network.Wai.Trans
-import Network.Wai.Internal
-import Network.HTTP.Types
+  ( FileExtListenerT, FileExt (Other), bytestring, julius, cassius, json, lucid, text
+  , textOnly, fileExtsToMiddleware
+  )
+import Network.Wai (Application)
+import Network.HTTP.Types (status406)
 import qualified Data.Text      as T
-import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Encoding as LT
 import qualified Lucid          as L
 import qualified Text.Lucius    as SL
 import qualified Text.Julius    as SJ
-import Test.Hspec
+import Test.Hspec (Spec, it, describe)
 import Test.Hspec.Wai   as HW
 
 

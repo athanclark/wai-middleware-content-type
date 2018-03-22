@@ -1,6 +1,6 @@
 name:                wai-middleware-content-type
-version:             0.6.0
-git:                 "git://git.localcooking.com/tooling/wai-middleware-content-type.git"
+version:             0.6.1
+github:              "athanclark/wai-middleware-content-type"
 license:             BSD3
 author:              "Athan Clark"
 maintainer:          "athan.clark@localcooking.com"
@@ -49,7 +49,7 @@ dependencies:
 - urlpath >= 8.0.1
 - wai >= 3.2
 - wai-logger
-- wai-transformers
+- wai-transformers >= 0.1.0
 
 library:
   source-dirs: src

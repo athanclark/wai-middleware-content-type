@@ -6,12 +6,12 @@
 module Network.Wai.Middleware.ContentType.Clay where
 
 import           Network.Wai.Middleware.ContentType.Types as CT
-import           Network.Wai.Middleware.ContentType.Text
+import           Network.Wai.Middleware.ContentType.Text  (textOnly)
 import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
-import           Clay.Render
-import           Clay.Stylesheet
+import           Clay.Render (Config, renderWith)
+import           Clay.Stylesheet (Css, App)
 import qualified Data.HashMap.Lazy                        as HM
 
 

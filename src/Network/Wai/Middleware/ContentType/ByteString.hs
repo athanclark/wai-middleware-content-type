@@ -1,6 +1,6 @@
 module Network.Wai.Middleware.ContentType.ByteString where
 
-import           Network.Wai.Middleware.ContentType.Types
+import           Network.Wai.Middleware.ContentType.Types (FileExtListenerT, tell', getLogger, FileExt, ResponseVia (..))
 import           Network.HTTP.Types                      (status200, Status, ResponseHeaders)
 import           Network.Wai                             (Response, responseLBS)
 

@@ -4,7 +4,7 @@
 
 module Network.Wai.Middleware.ContentType.Text where
 
-import           Network.Wai.Middleware.ContentType.Types
+import           Network.Wai.Middleware.ContentType.Types (FileExtListenerT, tell', FileExt (Text), ResponseVia (..))
 import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response, responseBuilder)
 

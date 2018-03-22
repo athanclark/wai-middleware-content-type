@@ -4,12 +4,12 @@
 
 module Network.Wai.Middleware.ContentType.Lucid where
 
-import           Network.Wai.Middleware.ContentType.Types
+import           Network.Wai.Middleware.ContentType.Types (FileExtListenerT, tell', FileExt (Html), ResponseVia (..))
 import           Network.HTTP.Types                      (status200, Status, ResponseHeaders)
 import           Network.Wai                             (Response, responseBuilder)
 
 import qualified Lucid.Base                              as L
-import           Control.Monad.Trans
+import           Control.Monad.Trans (MonadTrans (lift))
 import qualified Data.HashMap.Lazy                       as HM
 
 

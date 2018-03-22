@@ -45,29 +45,33 @@ module Network.Wai.Middleware.ContentType.Types
   ) where
 
 import qualified Data.Text              as T
-import           Data.HashMap.Lazy hiding (null)
+import           Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HM
-import           Data.Monoid
+import           Data.Monoid ((<>))
 import           Data.Maybe (fromMaybe)
-import           Data.Url
-import           Data.Hashable
+import           Data.Url (MonadUrl)
+import           Data.Hashable (Hashable)
 import qualified Data.ByteString        as BS
-import           Control.Applicative
-import           Control.Monad.Base
-import           Control.Monad.Catch
-import           Control.Monad.Cont
-import           Control.Monad.Except
-import           Control.Monad.Trans.Control hiding (embed)
-import           Control.Monad.Trans.Resource
-import           Control.Monad.State
-import           Control.Monad.Writer hiding (tell)
-import           Control.Monad.Reader
-import           Control.Monad.Logger
+import           Control.Monad (MonadPlus)
+import           Control.Applicative (Alternative)
+import           Control.Monad.Fix (MonadFix)
+import           Control.Monad.IO.Class (MonadIO)
+import           Control.Monad.Trans (MonadTrans (..))
+import           Control.Monad.Base (MonadBase (..))
+import           Control.Monad.Catch (MonadMask, MonadCatch, MonadThrow)
+import           Control.Monad.Cont (MonadCont)
+import           Control.Monad.Except (MonadError)
+import           Control.Monad.Trans.Control (MonadTransControl (..), MonadBaseControl (..), ComposeSt, defaultRestoreM, defaultLiftBaseWith)
+import           Control.Monad.Trans.Resource (MonadResource)
+import           Control.Monad.State (StateT (..), MonadState, get, put, execStateT, modify')
+import           Control.Monad.Writer (MonadWriter)
+import           Control.Monad.Reader (ReaderT (..), MonadReader (..))
+import           Control.Monad.Logger (MonadLogger (..))
 
-import           GHC.Generics
+import           GHC.Generics (Generic)
 import           Network.HTTP.Types (Status, ResponseHeaders)
 import           Network.HTTP.Media (mapAccept)
-import           Network.Wai.Trans (Response)
+import           Network.Wai (Response)
 
 
 -- | Version of 'Control.Monad.Writer.tell' for 'Control.Monad.State.StateT'
@@ -84,7 +88,7 @@ data FileExt
   | Json
   | Text
   | Markdown
-  | Other T.Text -- ^ excluding prefix period, i.e. `foo`
+  | Other {-# UNPACK #-} !T.Text -- ^ excluding prefix period, i.e. `foo`
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable FileExt
@@ -94,7 +98,7 @@ instance Hashable FileExt
 getFileExt :: [T.Text] -> Maybe FileExt
 getFileExt chunks = case chunks of
   [] -> Nothing
-  xs -> toExt . T.breakOnEnd "." $ last xs
+  xs -> toExt (T.breakOnEnd "." (last xs))
 
 {-# INLINEABLE getFileExt #-}
 
@@ -111,7 +115,7 @@ toExt (y,x)
   | x `elem` jsons       = Just Json
   | x `elem` texts       = Just Text
   | x `elem` markdowns   = Just Markdown
-  | otherwise            = Just $ Other x
+  | otherwise            = Just (Other x)
   where
     htmls       = ["htm", "html"]
     csss        = ["css"]
@@ -171,17 +175,17 @@ newtype FileExtListenerT m a = FileExtListenerT
              )
 
 getLogger :: Monad m => FileExtListenerT m (Status -> Maybe Integer -> IO ())
-getLogger = FileExtListenerT $ ReaderT $ \aplogger -> pure aplogger
+getLogger = FileExtListenerT (ReaderT pure)
 
 instance MonadTrans FileExtListenerT where
-  lift m = FileExtListenerT $ ReaderT $ \_ -> lift m
+  lift m = FileExtListenerT (ReaderT (\_ -> lift m))
 
 instance MonadReader r m => MonadReader r (FileExtListenerT m) where
-  ask = FileExtListenerT $ ReaderT $ \_ -> ask
+  ask = FileExtListenerT (ReaderT (const ask))
   local f (FileExtListenerT (ReaderT g)) = FileExtListenerT $ ReaderT $ \x -> local f (g x)
 
 instance Monad m => Monoid (FileExtListenerT m ()) where
-  mempty = FileExtListenerT $ put mempty
+  mempty = FileExtListenerT (put mempty)
   mappend x y = x >> y
 
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
@@ -270,6 +274,6 @@ possibleFileExts allFileExts accept = if not (null wildcard) then wildcard else 
 --   >   text "foo"
 --   >   invalidEncoding myErrorHandler -- handles all except text/plain
 invalidEncoding :: Monad m => ResponseVia -> FileExtListenerT m ()
-invalidEncoding r = mapM_ (\t -> tell' $ HM.singleton t r) [Html,Css,JavaScript,Json,Text,Markdown]
+invalidEncoding r = mapM_ (\t -> tell' (HM.singleton t r)) [Html,Css,JavaScript,Json,Text,Markdown]
 
 {-# INLINEABLE invalidEncoding #-}

@@ -6,11 +6,11 @@
 module Network.Wai.Middleware.ContentType.Lucius where
 
 import           Network.Wai.Middleware.ContentType.Types as CT
-import           Network.Wai.Middleware.ContentType.Text
+import           Network.Wai.Middleware.ContentType.Text  (textOnly)
 import           Network.HTTP.Types                       (status200, Status, ResponseHeaders)
 import           Network.Wai                              (Response)
 
-import           Text.Lucius
+import           Text.Lucius (Css, renderCss)
 import qualified Data.HashMap.Lazy                        as HM
 
 

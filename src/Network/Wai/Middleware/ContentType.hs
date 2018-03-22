@@ -42,11 +42,11 @@ import Network.Wai.Middleware.ContentType.Lucid
 import Network.Wai.Middleware.ContentType.Lucius
 import Network.Wai.Middleware.ContentType.Text
 
-import Network.Wai.Trans (Response, MiddlewareT, requestHeaders,
-                         pathInfo)
+import Network.Wai (Response, requestHeaders, pathInfo)
+import Network.Wai.Trans (MiddlewareT)
 import Network.Wai.Logger (withStdoutLogger)
 import qualified Data.HashMap.Lazy as HM
-import Data.Monoid
+import Data.Monoid (First (..))
 import Control.Monad.Trans.Control.Aligned (MonadBaseControl (..))
 import Data.Singleton.Class (Extractable (..))
 
