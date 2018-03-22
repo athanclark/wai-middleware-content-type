@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f497bfc449fb4f1433a5f05220106caabf2e30185da00ecd30075efef2dfa54d
+-- hash: fed743c9d2b0d613f04ead0d53fa3b28ca25f57b5f76f0edcb6943fe4d73f922
 
 name:           wai-middleware-content-type
-version:        0.6.1
+version:        0.6.1.1
 synopsis:       Route to different middlewares based on the incoming Accept header.
 description:    Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
 category:       Web

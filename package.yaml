@@ -1,5 +1,5 @@
 name:                wai-middleware-content-type
-version:             0.6.1
+version:             0.6.1.1
 github:              "athanclark/wai-middleware-content-type"
 license:             BSD3
 author:              "Athan Clark"

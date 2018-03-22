@@ -1,5 +1,6 @@
 {-# LANGUAGE
-    TypeFamilies
+    Rank2Types
+  , TypeFamilies
   , DeriveFunctor
   , DeriveGeneric
   , FlexibleContexts
@@ -52,6 +53,7 @@ import           Data.Maybe (fromMaybe)
 import           Data.Url (MonadUrl)
 import           Data.Hashable (Hashable)
 import qualified Data.ByteString        as BS
+import           Data.Functor.Compose (Compose)
 import           Control.Monad (MonadPlus)
 import           Control.Applicative (Alternative)
 import           Control.Monad.Fix (MonadFix)
@@ -62,6 +64,7 @@ import           Control.Monad.Catch (MonadMask, MonadCatch, MonadThrow)
 import           Control.Monad.Cont (MonadCont)
 import           Control.Monad.Except (MonadError)
 import           Control.Monad.Trans.Control (MonadTransControl (..), MonadBaseControl (..), ComposeSt, defaultRestoreM, defaultLiftBaseWith)
+import qualified Control.Monad.Trans.Control.Aligned as Aligned
 import           Control.Monad.Trans.Resource (MonadResource)
 import           Control.Monad.State (StateT (..), MonadState, get, put, execStateT, modify')
 import           Control.Monad.Writer (MonadWriter)
@@ -176,6 +179,24 @@ newtype FileExtListenerT m a = FileExtListenerT
 
 getLogger :: Monad m => FileExtListenerT m (Status -> Maybe Integer -> IO ())
 getLogger = FileExtListenerT (ReaderT pure)
+
+instance Aligned.MonadTransControl FileExtListenerT ((,) FileExtMap) where
+  liftWith client = FileExtListenerT $ ReaderT $ \env -> StateT $ \s ->
+    let run :: forall m a. Monad m => FileExtListenerT m a -> m (FileExtMap, a)
+        run (FileExtListenerT (ReaderT f)) =
+          let (StateT g) = f env
+          in  do (x, s') <- g s
+                 pure (s', x)
+    in  do x <- client run
+           pure (x, s)
+  restoreT mx = FileExtListenerT $ ReaderT $ \_ -> StateT $ \_ -> do
+    (s',x) <- mx
+    pure (x,s')
+
+instance ( Aligned.MonadBaseControl b m stM
+         ) => Aligned.MonadBaseControl b (FileExtListenerT m) (Compose stM ((,) FileExtMap)) where
+  liftBaseWith = Aligned.defaultLiftBaseWith
+  restoreM = Aligned.defaultRestoreM
 
 instance MonadTrans FileExtListenerT where
   lift m = FileExtListenerT (ReaderT (\_ -> lift m))
