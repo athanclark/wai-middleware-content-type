@@ -174,7 +174,7 @@ newtype FileExtListenerT m a = FileExtListenerT
   } deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
              , MonadWriter w, MonadState FileExtMap
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
-             , MonadMask, MonadLogger, MonadUrl b f
+             , MonadMask, MonadLogger, MonadUrl
              )
 
 getLogger :: Monad m => FileExtListenerT m (Status -> Maybe Integer -> IO ())
