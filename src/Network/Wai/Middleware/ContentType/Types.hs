@@ -48,6 +48,7 @@ module Network.Wai.Middleware.ContentType.Types
 import qualified Data.Text              as T
 import           Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HM
+import           Data.Semigroup (Semigroup)
 import           Data.Monoid ((<>))
 import           Data.Maybe (fromMaybe)
 import           Data.Url (MonadUrl)
@@ -205,9 +206,11 @@ instance MonadReader r m => MonadReader r (FileExtListenerT m) where
   ask = FileExtListenerT (ReaderT (const ask))
   local f (FileExtListenerT (ReaderT g)) = FileExtListenerT $ ReaderT $ \x -> local f (g x)
 
+instance Monad m => Semigroup (FileExtListenerT m ()) where
+  x <> y = x >> y
+
 instance Monad m => Monoid (FileExtListenerT m ()) where
   mempty = FileExtListenerT (put mempty)
-  mappend x y = x >> y
 
 deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
 

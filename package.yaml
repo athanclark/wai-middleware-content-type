@@ -1,5 +1,5 @@
 name:                wai-middleware-content-type
-version:             0.6.1.2
+version:             0.6.2
 github:              "athanclark/wai-middleware-content-type"
 license:             BSD3
 author:              "Athan Clark"
@@ -23,7 +23,7 @@ extra-source-files:
 description:         Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
 
 dependencies:
-- base >= 4.8 && < 5
+- base >= 4.11 && < 5
 - aeson
 - blaze-builder
 - blaze-html
@@ -46,7 +46,7 @@ dependencies:
 - transformers
 - transformers-base
 - unordered-containers
-- urlpath >= 9.0.0
+- urlpath >= 9.0.1
 - wai >= 3.2
 - wai-logger
 - wai-transformers >= 0.1.0

@@ -1,11 +1,13 @@
--- This file has been generated from package.yaml by hpack version 0.21.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ed9983cf563a9a4a966eb6dc4d58b7381960eb1aaf26875a6fcdb24c37eb576
+-- hash: 74380c70941c771873442f9110c7bc835e54ac9846659dc4fc1293931846853c
 
 name:           wai-middleware-content-type
-version:        0.6.1.2
+version:        0.6.2
 synopsis:       Route to different middlewares based on the incoming Accept header.
 description:    Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
 category:       Web
@@ -17,8 +19,6 @@ copyright:      2018 Athan Clark
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
-
 extra-source-files:
     README.md
 
@@ -46,7 +46,7 @@ library
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.8 && <5
+    , base >=4.11 && <5
     , blaze-builder
     , blaze-html
     , bytestring
@@ -68,7 +68,7 @@ library
     , transformers
     , transformers-base
     , unordered-containers
-    , urlpath >=9.0.0
+    , urlpath >=9.0.1
     , wai >=3.2
     , wai-logger
     , wai-transformers >=0.1.0
@@ -85,7 +85,7 @@ test-suite wai-middleware-content-type-test
   ghc-options: -Wall -threaded -rtsopts -Wall -with-rtsopts=-N
   build-depends:
       aeson
-    , base >=4.8 && <5
+    , base >=4.11 && <5
     , blaze-builder
     , blaze-html
     , bytestring
