@@ -18,7 +18,7 @@ import qualified Data.HashMap.Lazy                        as HM
 
 julius :: Monad m =>
           Javascript
-       -> FileExtListenerT m ()
+       -> FileExtListenerT urlbase m ()
 julius i =
   tell' $ HM.singleton CT.JavaScript $
     ResponseVia

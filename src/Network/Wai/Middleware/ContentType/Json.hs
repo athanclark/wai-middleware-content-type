@@ -17,9 +17,9 @@ import           Control.Monad.IO.Class (MonadIO (..))
 -- * Lifted Combinators
 
 json :: ( A.ToJSON j
-        , MonadIO m
+        , Monad m
         ) => j
-          -> FileExtListenerT m ()
+          -> FileExtListenerT urlbase m ()
 json =
   overFileExts [Json] (mapHeaders (("Content-Type","application/json"):))
     . bytestring Json . A.encode

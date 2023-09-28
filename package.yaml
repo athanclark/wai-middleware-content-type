@@ -1,10 +1,10 @@
 name:                wai-middleware-content-type
-version:             0.6.2
+version:             0.7.0
 github:              "athanclark/wai-middleware-content-type"
 license:             BSD3
 author:              "Athan Clark"
-maintainer:          "athan.clark@localcooking.com"
-copyright:           "2018 Athan Clark"
+maintainer:          "athan.clark@gmail.com"
+copyright:           "Copyright (c) 2023 Athan Clark"
 category:            Web
 synopsis:            Route to different middlewares based on the incoming Accept header.
 
@@ -13,14 +13,7 @@ ghc-options: -Wall
 extra-source-files:
 - README.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
+description:         Please see the README on Github at <https://github.com/athanclark/wai-middleware-content-type#readme>
 
 dependencies:
 - base >= 4.11 && < 5
@@ -37,7 +30,7 @@ dependencies:
 - lucid
 - mmorph
 - monad-control
-- monad-control-aligned
+- monad-control-aligned >= 0.0.2
 - monad-logger
 - mtl
 - resourcet
@@ -46,7 +39,7 @@ dependencies:
 - transformers
 - transformers-base
 - unordered-containers
-- urlpath >= 9.0.1
+- urlpath >= 11.0.0
 - wai >= 3.2
 - wai-logger
 - wai-transformers >= 0.1.0

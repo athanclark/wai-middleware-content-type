@@ -18,7 +18,7 @@ import qualified Data.HashMap.Lazy                        as HM
 
 lucius :: Monad m =>
           Css
-       -> FileExtListenerT m ()
+       -> FileExtListenerT urlbase m ()
 lucius i =
   tell' $ HM.singleton CT.Css $
     ResponseVia

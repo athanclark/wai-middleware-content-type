@@ -17,7 +17,7 @@ import qualified Data.HashMap.Lazy                       as HM
 
 blaze :: Monad m =>
          H.Html
-      -> FileExtListenerT m ()
+      -> FileExtListenerT urlbase m ()
 blaze i =
   tell' $ HM.singleton Html $
     ResponseVia

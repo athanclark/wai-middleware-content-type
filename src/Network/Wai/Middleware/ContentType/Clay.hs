@@ -19,7 +19,7 @@ import qualified Data.HashMap.Lazy                        as HM
 
 clay :: Monad m =>
         Config -> [App] -> Css
-     -> FileExtListenerT m ()
+     -> FileExtListenerT urlbase m ()
 clay c as i =
   tell' $ HM.singleton CT.Css $
     ResponseVia

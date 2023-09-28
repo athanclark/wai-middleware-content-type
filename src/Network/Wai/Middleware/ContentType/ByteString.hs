@@ -11,13 +11,12 @@ import           Control.Monad.IO.Class (MonadIO (..))
 
 -- * Lifted Combinators
 
-bytestring :: MonadIO m =>
+bytestring :: Monad m =>
               FileExt
            -> LBS.ByteString
-           -> FileExtListenerT m ()
+           -> FileExtListenerT urlbase m ()
 bytestring fe i = do
   aplogger <- getLogger
-  liftIO $ aplogger status200 (Just $ fromIntegral $ LBS.length i)
   tell' $ HM.singleton fe $
     ResponseVia
       i

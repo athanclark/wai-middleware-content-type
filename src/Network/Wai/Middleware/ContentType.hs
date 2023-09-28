@@ -74,7 +74,7 @@ lookupFileExt mAcceptBS mFe m =
 
 fileExtsToMiddleware :: MonadBaseControl IO m stM
                      => Extractable stM
-                     => FileExtListenerT m a
+                     => FileExtListenerT urlbase m a
                      -> MiddlewareT m
 fileExtsToMiddleware xs app req respond =
   liftBaseWith $ \runInBase -> withStdoutLogger $ \aplogger -> fmap runSingleton $ runInBase $ do

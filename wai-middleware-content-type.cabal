@@ -1,21 +1,21 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 74380c70941c771873442f9110c7bc835e54ac9846659dc4fc1293931846853c
+-- hash: a42d121b620f40447b4d6fef1cbd8eb612b28a5d3aafa4254bbb1147719ce1ec
 
 name:           wai-middleware-content-type
-version:        0.6.2
+version:        0.7.0
 synopsis:       Route to different middlewares based on the incoming Accept header.
-description:    Please see the README on Github at <https://git.localcooking.com/tooling/wai-middleware-content-type#readme>
+description:    Please see the README on Github at <https://github.com/athanclark/wai-middleware-content-type#readme>
 category:       Web
 homepage:       https://github.com/athanclark/wai-middleware-content-type#readme
 bug-reports:    https://github.com/athanclark/wai-middleware-content-type/issues
 author:         Athan Clark
-maintainer:     athan.clark@localcooking.com
-copyright:      2018 Athan Clark
+maintainer:     athan.clark@gmail.com
+copyright:      Copyright (c) 2023 Athan Clark
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -59,7 +59,7 @@ library
     , lucid
     , mmorph
     , monad-control
-    , monad-control-aligned
+    , monad-control-aligned >=0.0.2
     , monad-logger
     , mtl
     , resourcet
@@ -68,7 +68,7 @@ library
     , transformers
     , transformers-base
     , unordered-containers
-    , urlpath >=9.0.1
+    , urlpath >=11.0.0
     , wai >=3.2
     , wai-logger
     , wai-transformers >=0.1.0
@@ -100,7 +100,7 @@ test-suite wai-middleware-content-type-test
     , lucid
     , mmorph
     , monad-control
-    , monad-control-aligned
+    , monad-control-aligned >=0.0.2
     , monad-logger
     , mtl
     , resourcet

@@ -17,7 +17,7 @@ import qualified Data.HashMap.Lazy                        as HM
 
 text :: Monad m =>
         LT.Text
-     -> FileExtListenerT m ()
+     -> FileExtListenerT urlbase m ()
 text i =
   tell' $ HM.singleton Text $
     ResponseVia

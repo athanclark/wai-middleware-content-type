@@ -151,8 +151,8 @@ mapHeaders f (ResponseVia d s hs f') = ResponseVia d s (f hs) f'
 overFileExts :: Monad m =>
                 [FileExt]
              -> (ResponseVia -> ResponseVia)
-             -> FileExtListenerT m a
-             -> FileExtListenerT m a
+             -> FileExtListenerT urlbase m a
+             -> FileExtListenerT urlbase m a
 overFileExts fs f (FileExtListenerT (ReaderT xs)) = do
   aplogger <- getLogger
   i <- get
@@ -166,24 +166,24 @@ type FileExtMap = HashMap FileExt ResponseVia
 -- | The monad for our DSL - when using the combinators, our result will be this
 --   type:
 --
---   > myListener :: FileExtListenerT (MiddlewareT m) m ()
+--   > myListener :: FileExtListenerT base (MiddlewareT m) m ()
 --   > myListener = do
 --   >   text "Text!"
 --   >   json ("Json!" :: T.Text)
-newtype FileExtListenerT m a = FileExtListenerT
+newtype FileExtListenerT urlbase m a = FileExtListenerT
   { runFileExtListenerT :: ReaderT (Status -> Maybe Integer -> IO ()) (StateT FileExtMap m) a
   } deriving ( Functor, Applicative, Alternative, Monad, MonadFix, MonadPlus, MonadIO
              , MonadWriter w, MonadState FileExtMap
              , MonadCont, MonadError e, MonadBase b, MonadThrow, MonadCatch
-             , MonadMask, MonadLogger, MonadUrl
+             , MonadMask, MonadLogger, MonadUrl urlbase
              )
 
-getLogger :: Monad m => FileExtListenerT m (Status -> Maybe Integer -> IO ())
+getLogger :: Monad m => FileExtListenerT urlbase m (Status -> Maybe Integer -> IO ())
 getLogger = FileExtListenerT (ReaderT pure)
 
-instance Aligned.MonadTransControl FileExtListenerT ((,) FileExtMap) where
+instance Aligned.MonadTransControl (FileExtListenerT urlbase) ((,) FileExtMap) where
   liftWith client = FileExtListenerT $ ReaderT $ \env -> StateT $ \s ->
-    let run :: forall m a. Monad m => FileExtListenerT m a -> m (FileExtMap, a)
+    let run :: forall urlbase m a. Monad m => FileExtListenerT urlbase m a -> m (FileExtMap, a)
         run (FileExtListenerT (ReaderT f)) =
           let (StateT g) = f env
           in  do (x, s') <- g s
@@ -195,40 +195,41 @@ instance Aligned.MonadTransControl FileExtListenerT ((,) FileExtMap) where
     pure (x,s')
 
 instance ( Aligned.MonadBaseControl b m stM
-         ) => Aligned.MonadBaseControl b (FileExtListenerT m) (Compose stM ((,) FileExtMap)) where
+         ) => Aligned.MonadBaseControl b
+                (FileExtListenerT urlbase m) (Compose stM ((,) FileExtMap)) where
   liftBaseWith = Aligned.defaultLiftBaseWith
   restoreM = Aligned.defaultRestoreM
 
-instance MonadTrans FileExtListenerT where
+instance MonadTrans (FileExtListenerT urlbase) where
   lift m = FileExtListenerT (ReaderT (\_ -> lift m))
 
-instance MonadReader r m => MonadReader r (FileExtListenerT m) where
+instance MonadReader r m => MonadReader r (FileExtListenerT urlbase m) where
   ask = FileExtListenerT (ReaderT (const ask))
   local f (FileExtListenerT (ReaderT g)) = FileExtListenerT $ ReaderT $ \x -> local f (g x)
 
-instance Monad m => Semigroup (FileExtListenerT m ()) where
+instance Monad m => Semigroup (FileExtListenerT urlbase m ()) where
   x <> y = x >> y
 
-instance Monad m => Monoid (FileExtListenerT m ()) where
+instance Monad m => Monoid (FileExtListenerT urlbase m ()) where
   mempty = FileExtListenerT (put mempty)
 
-deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT m)
+deriving instance (MonadResource m, MonadBase IO m) => MonadResource (FileExtListenerT urlbase m)
 
-instance MonadTransControl FileExtListenerT where
-  type StT FileExtListenerT a = StT (StateT FileExtMap)
+instance MonadTransControl (FileExtListenerT urlbase) where
+  type StT (FileExtListenerT urlbase) a = StT (StateT FileExtMap)
         (StT (ReaderT (Status -> Maybe Integer -> IO ())) a)
   liftWith f = FileExtListenerT $ ReaderT $ \aplogger -> liftWith $ \runInBase ->
     f (\(FileExtListenerT (ReaderT xs)) -> runInBase (xs aplogger))
   restoreT x = FileExtListenerT $ ReaderT $ \_ -> restoreT x
 
 instance ( MonadBaseControl b m
-         ) => MonadBaseControl b (FileExtListenerT m) where
-  type StM (FileExtListenerT m) a = ComposeSt FileExtListenerT m a
+         ) => MonadBaseControl b (FileExtListenerT urlbase m) where
+  type StM (FileExtListenerT urlbase m) a = ComposeSt (FileExtListenerT urlbase) m a
   liftBaseWith = defaultLiftBaseWith
   restoreM     = defaultRestoreM
 
 execFileExtListenerT :: Monad m
-                     => FileExtListenerT m a
+                     => FileExtListenerT urlbase m a
                      -> Maybe (Status -> Maybe Integer -> IO ())
                      -> m FileExtMap
 execFileExtListenerT xs mL =
@@ -239,8 +240,8 @@ execFileExtListenerT xs mL =
 
 mapFileExtMap :: ( Monad m
                  ) => (FileExtMap -> FileExtMap)
-                   -> FileExtListenerT m a
-                   -> FileExtListenerT m a
+                   -> FileExtListenerT urlbase m a
+                   -> FileExtListenerT urlbase m a
 mapFileExtMap f (FileExtListenerT xs) = do
   aplogger <- getLogger
   m      <- get
@@ -297,7 +298,7 @@ possibleFileExts allFileExts accept = if not (null wildcard) then wildcard else 
 --   > myApp = do
 --   >   text "foo"
 --   >   invalidEncoding myErrorHandler -- handles all except text/plain
-invalidEncoding :: Monad m => ResponseVia -> FileExtListenerT m ()
+invalidEncoding :: Monad m => ResponseVia -> FileExtListenerT urlbase m ()
 invalidEncoding r = mapM_ (\t -> tell' (HM.singleton t r)) [Html,Css,JavaScript,Json,Text,Markdown]
 
 {-# INLINEABLE invalidEncoding #-}

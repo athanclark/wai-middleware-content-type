@@ -21,7 +21,7 @@ import Network.Wai.Trans
 myMiddleware :: MiddlewareT (ReaderT Env m)
 
 contentTypeRoutes :: Monad m =>
-                     FileExtListenerT (Status -> ResponseHeaders -> Response) m ()
+                     FileExtListenerT urlbase (Status -> ResponseHeaders -> Response) m ()
 contentTypeRoutes = do
   blaze myBlazeResponse
   cassius myCassiusResponse

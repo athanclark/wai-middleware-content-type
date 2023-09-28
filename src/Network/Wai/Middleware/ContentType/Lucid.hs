@@ -17,7 +17,7 @@ import qualified Data.HashMap.Lazy                       as HM
 
 lucid :: Monad m =>
          L.HtmlT m ()
-      -> FileExtListenerT m ()
+      -> FileExtListenerT urlbase m ()
 lucid i = do
   f <- lift (lucidOnly i)
   tell' $ HM.singleton Html $
